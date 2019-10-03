@@ -1,15 +1,6 @@
 import mecab
 import Foundation
 
-public struct Dictionary{
-    enum DictionaryType{
-        case ipadic
-        case unidic
-    }
-    let url:URL
-    let type:DictionaryType
-}
-
 
 public class Tokenizer{
     
@@ -42,10 +33,15 @@ public class Tokenizer{
     public init(dictionary:Dictionary) throws{
         self.dictionary=dictionary
         let tokenizer=try dictionary.url.withUnsafeFileSystemRepresentation({path->OpaquePointer in
-            guard let path=path else{ throw TokenizerError.initializationFailure("URL Conversion Failed")}
-            guard let tokenizer=mecab_new2("-d \(String(cString: path))") else {
-                let error=String(cString: mecab_strerror(nil), encoding: .utf8) ?? "Opening Dictionary Failed"
-                throw TokenizerError.initializationFailure(error)
+            guard let path=path,
+                let dictPath=String(cString: path).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
+                //MeCab splits the commands by spaces, so we need to escape the path passed inti the function.
+                //We replace the percent encoded space when opening the dictionary. This is mostly relevant when the dictionary os located inside a folder of which we cannot control the name, i.e. Application Support
+                else{ throw TokenizerError.initializationFailure("URL Conversion Failed \(dictionary)")}
+            
+            guard let tokenizer=mecab_new2("-d \(dictPath)") else {
+                let error=String(cString: mecab_strerror(nil), encoding: .utf8) ?? ""
+                throw TokenizerError.initializationFailure("Opening Dictionary Failed \(dictionary) \(error)")
             }
             return tokenizer
         })
@@ -68,7 +64,7 @@ public class Tokenizer{
                 return annotations
         }
         
-        var node=nodes.pointee.next
+        var node=nodes.pointee.next //this makes us skip the beginning of sentence node
         
         while node != nil {
             
@@ -115,20 +111,6 @@ public class Tokenizer{
         return outString
     
     }
-    
-    /*
-     for (NSValue *rValue in sortedRanges) {
-     NSString *ruby=furigana[rValue];
-     NSRange range=rValue.rangeValue;
-     NSRange correctedRange=NSMakeRange(range.location+delta, range.length);
-     NSString *original=[rubyAnnotated substringWithRange:correctedRange];
-     if(ruby.length>0){
-         NSString *htmlRuby=[NSString stringWithFormat:@"<ruby>%@<rt>%@</rt></ruby>",original,ruby];
-         NSUInteger d=htmlRuby.length-original.length;
-         delta+=d;
-         [rubyAnnotated replaceCharactersInRange:correctedRange withString:htmlRuby];
-     }
-     */
     
     deinit {
         mecab_destroy(_mecab)

@@ -7,15 +7,24 @@
 
 import Foundation
 
-public struct FuriganaAnnotation{
+public struct FuriganaAnnotation:CustomStringConvertible,Equatable,Comparable{
+   
     public let reading:String
     public let range:Range<String.Index>
+    
+    public var description: String{
+        return "\(reading), \(range)"
+    }
+    
+    public static func < (lhs: FuriganaAnnotation, rhs: FuriganaAnnotation) -> Bool {
+        return lhs.range.lowerBound < rhs.range.lowerBound
+    }
 }
 
 #if canImport(CoreText)
 import CoreText
 
-@available(OSX 10.12, *)
+@available(OSX 10.12, iOS 10.0, *)
 extension FuriganaAnnotation{
    
     public func rubyAnnotation(alignment:CTRubyAlignment = .auto, overhang:CTRubyOverhang = .auto, sizeFActor:CGFloat = 0.5, position:CTRubyPosition = .before, attributes:[NSAttributedString.Key:Any] = [:])->CTRubyAnnotation{
@@ -27,6 +36,5 @@ extension FuriganaAnnotation{
         return ruby
     }
 }
-
 
 #endif

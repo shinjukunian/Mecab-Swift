@@ -3,9 +3,10 @@ import XCTest
 
 final class Mecab_SwiftTests: XCTestCase {
     
+    //this seems clumsy, but is is important to check whether we can load dictionaries located at URLs that contain spaces
     lazy var dictionaryURL:URL = {
         let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
-        let modelURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("ipadic", isDirectory: true)
+        let modelURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("ipadic dictionary", isDirectory: true)
         return modelURL
     }()
     
@@ -42,7 +43,7 @@ final class Mecab_SwiftTests: XCTestCase {
             let string="熊が怖いです。"
             let tokens=tokenizer.tokenize(text: string)
             XCTAssertFalse(tokens.isEmpty)
-            
+            print(tokens)
            
             
         }
@@ -61,7 +62,7 @@ final class Mecab_SwiftTests: XCTestCase {
             let expectedFurigana=["くま","こわ"]
             for annotation in annotations{
                 let subString=string[annotation.range]
-                print("\(String(subString)), reading: \(annotation.reading)")
+                print("\(String(subString)), reading: \(annotation)")
             }
             for (expected,found) in zip(expectedFurigana,annotations.map({$0.reading})){
                 XCTAssertEqual(expected, found)
@@ -84,7 +85,7 @@ final class Mecab_SwiftTests: XCTestCase {
             let expectedFurigana=["でんわ"]
             for annotation in annotations{
                 let subString=string[annotation.range]
-                print("\(String(subString)), reading: \(annotation.reading)")
+                print("\(String(subString)), reading: \(annotation)")
             }
             for (expected,found) in zip(expectedFurigana,annotations.map({$0.reading})){
                 XCTAssertEqual(expected, found)
@@ -106,7 +107,7 @@ final class Mecab_SwiftTests: XCTestCase {
             let expectedFurigana=["う　あ"]
             for annotation in annotations{
                 let subString=string[annotation.range]
-                print("\(String(subString)), reading: \(annotation.reading)")
+                print("\(String(subString)), reading: \(annotation)")
             }
             for (expected,found) in zip(expectedFurigana,annotations.map({$0.reading})){
                 XCTAssertEqual(expected, found)

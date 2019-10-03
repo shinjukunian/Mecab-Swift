@@ -8,9 +8,18 @@
 import Foundation
 import mecab
 
-public enum PartOfSpeech{
+public enum PartOfSpeech:CustomStringConvertible{
     case verb
     case unknown
+    
+    public var description: String{
+        switch self {
+        case .verb:
+            return "verb"
+        case .unknown:
+            return "unknown"
+        }
+    }
 }
 
 

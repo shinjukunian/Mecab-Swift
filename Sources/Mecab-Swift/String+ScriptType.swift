@@ -39,12 +39,12 @@ public extension String{
         return .noJapaneseScript
     }
 
-    var containsKanjiCharacters:Bool{
+    @inlinable var containsKanjiCharacters:Bool{
         let containedCharacters=CharacterSet.init(charactersIn: self)
         return !containedCharacters.intersection(CharacterSet.kanji).isEmpty
     }
     
-    var kanjiCharacters:[String]{
+    @inlinable var kanjiCharacters:[String]{
         let characters=self.compactMap({String($0).containsKanjiCharacters ? String($0): nil})
         return characters.uniqueElements
     }
@@ -75,7 +75,7 @@ public extension String{
 }
 
 
-extension CharacterSet{
+public extension CharacterSet{
     
     static var hiragana:CharacterSet{
         let start=Unicode.Scalar(0x3040)
@@ -95,9 +95,6 @@ extension CharacterSet{
         let end=Unicode.Scalar(0x9fbf)
         return CharacterSet.init(charactersIn: start!...end!)
     }
-    
-    
-
 }
 
 

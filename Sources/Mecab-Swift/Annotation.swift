@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Annotation{
+public struct Annotation:Equatable{
     
     public struct AnnotationOptions:OptionSet{
         public let rawValue: Int
@@ -23,12 +23,14 @@ public struct Annotation{
     public let partOfSpeach:PartOfSpeech
     public let range:Range<String.Index>
     public let dictionaryForm:String
+    let transliteration:Tokenizer.Transliteration
     
     init(token:Token, range:Range<String.Index>, transliteration:Tokenizer.Transliteration) {
         self.base=token.original
         
         self.partOfSpeach=token.partOfSpeech
         self.range=range
+        self.transliteration=transliteration
         
         switch transliteration {
         case .katakana:
@@ -43,7 +45,7 @@ public struct Annotation{
         }
     }
     
-    public var containsKanji:Bool{
+    @inlinable public var containsKanji:Bool{
         return self.base.containsKanjiCharacters
     }
     
@@ -90,15 +92,9 @@ public struct Annotation{
     }
 }
 
-public extension String{
-    var hiraganaString:String{
-        if #available(OSX 10.11, *) {
-            return self.applyingTransform(.hiraganaToKatakana, reverse: true) ?? self
-        } else {
-            guard let mutableSelf=CFStringCreateMutableCopy(nil, 0, self as CFString) else{return self}
-            CFStringTransform(mutableSelf, nil, kCFStringTransformHiraganaKatakana, true)
-            return CFStringCreateCopy(nil, mutableSelf) as String
-        }
+
+extension Annotation:CustomStringConvertible{
+    public var description: String{
+        return "Base: \(base), reading: \(reading), POS: \(partOfSpeach)"
     }
 }
-
