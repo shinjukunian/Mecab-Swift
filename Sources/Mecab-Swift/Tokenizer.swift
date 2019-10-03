@@ -77,7 +77,7 @@ public class Tokenizer{
         
         var searchRange=text.startIndex..<text.endIndex
         for token in tokens{
-            if let foundRange=text.range(of: token.original, options: [.anchored], range: searchRange, locale: nil){
+            if let foundRange=text.range(of: token.original, options: [], range: searchRange, locale: nil){
                 let annotation=Annotation(token: token, range: foundRange, transliteration: transliteration)
                 annotations.append(annotation)
                 searchRange=foundRange.upperBound..<text.endIndex
