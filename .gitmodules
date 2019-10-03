@@ -1,0 +1,3 @@
+[submodule "Sources/mecab"]
+	path = Sources/mecab
+	url = git@github.com:shinjukunian/mecab.git

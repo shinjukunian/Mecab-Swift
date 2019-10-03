@@ -18,9 +18,27 @@ let package = Package(
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
+        
+        .target(name: "mecab", dependencies: [],
+                path: "Sources/mecab/mecab",
+                exclude: ["src/mecab-cost-train.cpp",
+                          "src/mecab-dict-gen.cpp",
+                          "src/mecab-dict-index.cpp",
+                          "src/mecab-system-eval.cpp",
+                          "src/mecab-test-gen.cpp",
+                          "src/mecab.cpp"],
+                sources: ["src"],
+                publicHeadersPath: "swift",
+                cSettings: [.define("HAVE_CONFIG_H"),
+                        .headerSearchPath(".")],
+                cxxSettings: [.define("HAVE_ICONV")],
+                swiftSettings: nil,
+                linkerSettings: [.linkedLibrary("iconv")]),
+         
         .target(
             name: "Mecab-Swift",
-            dependencies: []),
+            dependencies: ["mecab"]),
+
         .testTarget(
             name: "Mecab-SwiftTests",
             dependencies: ["Mecab-Swift"]),

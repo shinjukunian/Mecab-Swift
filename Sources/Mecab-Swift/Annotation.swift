@@ -1,0 +1,104 @@
+//
+//  File.swift
+//  
+//
+//  Created by Morten Bertz on 2019/10/02.
+//
+
+import Foundation
+
+public struct Annotation{
+    
+    public struct AnnotationOptions:OptionSet{
+        public let rawValue: Int
+        public static let kanjiOnly=AnnotationOptions(rawValue: 1 << 0)
+        
+        public init(rawValue: Int){
+            self.rawValue=rawValue
+        }
+    }
+    
+    public let base:String
+    public let reading:String
+    public let partOfSpeach:PartOfSpeech
+    public let range:Range<String.Index>
+    public let dictionaryForm:String
+    
+    init(token:Token, range:Range<String.Index>, transliteration:Tokenizer.Transliteration) {
+        self.base=token.original
+        
+        self.partOfSpeach=token.partOfSpeech
+        self.range=range
+        
+        switch transliteration {
+        case .katakana:
+            self.reading=token.reading
+            self.dictionaryForm=token.dictionaryForm
+        case .hiragana:
+            self.reading=token.reading.hiraganaString
+            self.dictionaryForm=token.dictionaryForm.hiraganaString
+        case .romaji:
+            self.reading=token.reading.romanizedString(method: .hepburn)
+            self.dictionaryForm=token.dictionaryForm.romanizedString(method: .hepburn)
+        }
+    }
+    
+    public var containsKanji:Bool{
+        return self.base.containsKanjiCharacters
+    }
+    
+    public func furiganaAnnotation(options:[AnnotationOptions] = [.kanjiOnly], for string:String)->FuriganaAnnotation{
+        
+        if options.contains(.kanjiOnly){
+            let hiraganaRanges=self.base.hiraganaRanges
+            var transliteration=self.reading
+            var range=self.range
+            for hiraganaRange in hiraganaRanges{
+                switch hiraganaRange {
+                case _ where hiraganaRange.upperBound == self.base.endIndex:
+                    let trailingDistance=self.base.distance(from: self.base.endIndex, to: hiraganaRange.lowerBound)
+                    let newEndIndex=string.index(range.upperBound, offsetBy: trailingDistance)
+                    range=range.lowerBound..<newEndIndex
+                    let transliterationEnd=transliteration.index(transliteration.endIndex, offsetBy: trailingDistance)
+                    let newTransliterationRange=transliteration.startIndex..<transliterationEnd
+                    let t2=transliteration[newTransliterationRange]
+                    transliteration=String(t2)
+                case _ where hiraganaRange.lowerBound == self.base.startIndex:
+                    let leadingDistance=self.base.distance(from: self.base.startIndex, to: hiraganaRange.upperBound)
+                    let newStartIndex=string.index(range.lowerBound, offsetBy: leadingDistance)// wrong?
+                    range=range.lowerBound..<newStartIndex
+                    let transliterationStart=transliteration.index(transliteration.startIndex, offsetBy: leadingDistance)
+                    let newTransliterationRange=transliterationStart..<transliteration.endIndex
+                    let t2=transliteration[newTransliterationRange]
+                    transliteration=String(t2)
+                default:
+                    let leadingDistance=self.base.distance(from: self.base.startIndex, to: hiraganaRange.lowerBound)
+                    let trailingDistance=self.base.distance(from: self.base.endIndex, to: hiraganaRange.upperBound)
+                    let transliterationStart=transliteration.index(transliteration.startIndex, offsetBy: leadingDistance)
+                    let transliterationEnd=transliteration.index(transliteration.endIndex, offsetBy: trailingDistance)
+                    let newTransliterationRange=transliterationStart..<transliterationEnd
+                    let length=self.base.distance(from: hiraganaRange.lowerBound, to: hiraganaRange.upperBound)
+                    let replacementString=String(repeatElement("　", count: length))
+                    transliteration.replaceSubrange(newTransliterationRange, with: replacementString)
+                }
+            }
+            return FuriganaAnnotation(reading: transliteration , range: range)
+        }
+        else{
+            return FuriganaAnnotation(reading: self.reading , range: self.range)
+        }
+    }
+}
+
+public extension String{
+    var hiraganaString:String{
+        if #available(OSX 10.11, *) {
+            return self.applyingTransform(.hiraganaToKatakana, reverse: true) ?? self
+        } else {
+            guard let mutableSelf=CFStringCreateMutableCopy(nil, 0, self as CFString) else{return self}
+            CFStringTransform(mutableSelf, nil, kCFStringTransformHiraganaKatakana, true)
+            return CFStringCreateCopy(nil, mutableSelf) as String
+        }
+    }
+}
+
