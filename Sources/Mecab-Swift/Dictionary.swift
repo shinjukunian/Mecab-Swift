@@ -20,8 +20,8 @@ public struct Dictionary:CustomStringConvertible{
         }
     }
     
-    let url:URL
-    let type:DictionaryType
+    public let url:URL
+    public let type:DictionaryType
     
     public var description: String{
         return "Dictionary: \(url), Type: \(type)"
