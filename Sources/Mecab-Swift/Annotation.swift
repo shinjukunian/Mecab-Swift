@@ -7,10 +7,27 @@
 
 import Foundation
 
+/**
+ `Annotation`s encapsulate the information of the `Tokenizer`.
+ - base: represents the string value of the token in the original text
+ - reading: in case `base` contains Kanji characters, the reading if the characters. The reading is formatted according to `Transliteration`
+ - partOfSpeech: A member of the `PartOfSpeech` enum.
+ - dictionaryForm: in case of verbs or adjectives, the dictionary form of the token.
+ */
+
 public struct Annotation:Equatable{
     
+    /**
+     Various options to format `Annotation` output
+     */
     public struct AnnotationOptions:OptionSet{
         public let rawValue: Int
+        
+        /**
+        The reading of the `Annotation` should only conatain information for the actual Kanji characters, skipping leading or trailing Kana, e.g. okurigana.
+         
+         For example the reading for 打ち合わせ would typically be うちわわせ. With `kanjiOnly` set, the reading skips the kana common in reading and base, the resulting reading is う＿あ, with ＿ representing a fulll-width space. The start and end of th erange are adjusted appropriately.
+         */
         public static let kanjiOnly=AnnotationOptions(rawValue: 1 << 0)
         
         public init(rawValue: Int){
@@ -20,7 +37,7 @@ public struct Annotation:Equatable{
     
     public let base:String
     public let reading:String
-    public let partOfSpeach:PartOfSpeech
+    public let partOfSpeech:PartOfSpeech
     public let range:Range<String.Index>
     public let dictionaryForm:String
     let transliteration:Tokenizer.Transliteration
@@ -28,7 +45,7 @@ public struct Annotation:Equatable{
     init(token:Token, range:Range<String.Index>, transliteration:Tokenizer.Transliteration) {
         self.base=token.original
         
-        self.partOfSpeach=token.partOfSpeech
+        self.partOfSpeech=token.partOfSpeech
         self.range=range
         self.transliteration=transliteration
         
@@ -45,10 +62,20 @@ public struct Annotation:Equatable{
         }
     }
     
+    /**
+     Checks whether the `base` of the `Annotation` contains Kanji characters.
+     */
     @inlinable public var containsKanji:Bool{
         return self.base.containsKanjiCharacters
     }
     
+    /**
+        A convenience function to create properly formatted `FuriganaAnnotations` from an `Annotation`
+     - parameters:
+            - options: `AnnotationOptions` how to format the `FuriganaAnnotations`
+            - string: the underlying text for which the `FuriganaAnnotation` should be generated. This parameter is required because some options can change the range of the token in the base text.
+     - returns: A  `FuriganaAnnotation`.
+     */
     public func furiganaAnnotation(options:[AnnotationOptions] = [.kanjiOnly], for string:String)->FuriganaAnnotation{
         
         if options.contains(.kanjiOnly){
@@ -95,6 +122,6 @@ public struct Annotation:Equatable{
 
 extension Annotation:CustomStringConvertible{
     public var description: String{
-        return "Base: \(base), reading: \(reading), POS: \(partOfSpeach)"
+        return "Base: \(base), reading: \(reading), POS: \(partOfSpeech)"
     }
 }

@@ -1,9 +1,14 @@
 import mecab
 import Foundation
 
-
+/**
+A tokenizer /  morphological analyzer for Japanese
+*/
 public class Tokenizer{
     
+    /**
+    How to display found tokens in Japanese text
+    */
    public enum Transliteration{
         case hiragana
         case katakana
@@ -26,10 +31,21 @@ public class Tokenizer{
     
     fileprivate let _mecab:OpaquePointer
     
+    
+    /**
+     The version of the underlying mecab engine.
+     */
     public class var version:String{
         return String(cString: mecab_version(), encoding: .utf8) ?? ""
     }
     
+    /**
+     Initializes the Tokenizer.
+     - parameters:
+        - dictionary:  A Dictionary struct that encapsulates the dictionary and its positional information.
+     - throws:
+        * `TokenizerError`: Typically an error that indicates that the dictionary didn't exist or couldn't be opened.
+     */
     public init(dictionary:Dictionary) throws{
         self.dictionary=dictionary
         let tokenizer=try dictionary.url.withUnsafeFileSystemRepresentation({path->OpaquePointer in
@@ -50,6 +66,13 @@ public class Tokenizer{
 
     }
     
+    /**
+     The fundamental function to tokenize Japanese text with an initialized `Tokenizer`
+     - parameters:
+        - text: A `string` that contains the text to tokenize.
+        - transliteration : A `Transliteration` method. The text content of found tokens will be displayed using this.
+     - returns: An array of `Annotation`, a struct that contains the found tokens (the token value, the reading, POS, etc.).
+     */
     public func tokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
         
         var tokens=[Token]()
@@ -91,6 +114,17 @@ public class Tokenizer{
         return annotations
     }
     
+    
+    /**
+    A convenience function to tokenize text into `FuriganaAnnotations`.
+     
+     `FuriganaAnnotations` are meant for displaying furigana reading aids for Japanese Kanji characters, and consequently tokens that don't contain Kanji are skipped.
+    - parameters:
+       - text: A `string` that contains the text to tokenize.
+       - transliteration : A `Transliteration` method. The text content of found tokens will be displayed using this.
+       - options : Options to pass to the tokenizer
+    - returns: An array of `FuriganaAnnotations`, which contain the reading o fthe token and the range of the token in the original text.
+    */
     public func furiganaAnnotations(for text:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOptions] = [.kanjiOnly])->[FuriganaAnnotation]{
         
         return self.tokenize(text: text, transliteration: transliteration)
@@ -98,7 +132,16 @@ public class Tokenizer{
             .map({$0.furiganaAnnotation(options: options, for: text)})
     }
     
-    
+    /**
+       A convenience function to add `<ruby>` tags to  text.
+        
+        `<ruby>` tags are added to all tokens that contain Kanji characters, regardless of whether they are on specific parts of an HTML document or not. This can potentially disrupt scripts or navigation.
+       - parameters:
+          - htmlText: A `string` that contains the text to tokenize.
+          - transliteration : A `Transliteration` method. The text content of found tokens will be displayed using this.
+          - options : Options to pass to the tokenizer
+       - returns: A text with `<ruby>` annotations.
+       */
     public func addRubyTags(to htmlText:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOptions] = [.kanjiOnly])->String{
         let furigana=self.furiganaAnnotations(for: htmlText, transliteration: transliteration, options: options)
         var searchRange:Range<String.Index> = htmlText.startIndex ..< htmlText.endIndex

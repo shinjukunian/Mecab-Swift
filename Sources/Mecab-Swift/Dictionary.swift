@@ -7,8 +7,14 @@
 
 import Foundation
 
+/**
+A wrapper around a dictionary, for example IPADic. A number of dictionaries for mecan can be found on the internet. Different dictionaries privde different features (POS tagging etc), and so far I have not been able to get this information out of mecab at runtime. The dictionary scheme is contained in the dicrc file.
+*/
 public struct Dictionary:CustomStringConvertible{
     
+    /**
+     A dictionary type. This type (will eventually) encapsulate the positional information of the output of the dictionary (POS etc). So far, only IPADic is implemented. Eventually, this enum might be better served by a protocol.
+     */
     public enum DictionaryType:CustomStringConvertible{
         case ipadic
         
