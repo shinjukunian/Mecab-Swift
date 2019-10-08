@@ -95,7 +95,7 @@ public struct Annotation:Equatable{
                 case _ where hiraganaRange.lowerBound == self.base.startIndex:
                     let leadingDistance=self.base.distance(from: self.base.startIndex, to: hiraganaRange.upperBound)
                     let newStartIndex=string.index(range.lowerBound, offsetBy: leadingDistance)// wrong?
-                    range=range.lowerBound..<newStartIndex
+                    range=newStartIndex..<range.upperBound
                     let transliterationStart=transliteration.index(transliteration.startIndex, offsetBy: leadingDistance)
                     let newTransliterationRange=transliterationStart..<transliteration.endIndex
                     let t2=transliteration[newTransliterationRange]
