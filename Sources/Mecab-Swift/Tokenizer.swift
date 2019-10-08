@@ -75,29 +75,23 @@ public class Tokenizer{
      */
     public func tokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
         
-        var tokens=[Token]()
-        var annotations=[Annotation]()
-        
-        guard let nodes=text.withCString({s->UnsafePointer<mecab_node_t>? in
-            let length=text.lengthOfBytes(using: .utf8)
-            let mecabNodes=mecab_sparse_tonode2(self._mecab, s, length)
-            return mecabNodes
-        })
-            else{
-                return annotations
-        }
-        
-        var node=nodes.pointee.next //this makes us skip the beginning of sentence node
-        
-        while node != nil {
+         let tokens=text.withCString({s->[Token] in
+            var tokens=[Token]()
+            var node=mecab_sparse_tonode(self._mecab, s)
+            while true{
+                guard let n = node else {break}
             
-            if let token=Token(node: node!.pointee, dictionary:dictionary.type){
-                tokens.append(token)
+                    if let token=Token(node: n.pointee, dictionary: self.dictionary.type){
+                        tokens.append(token)
+                    }
+                
+                    node = UnsafePointer(n.pointee.next)
             }
-            node=node?.pointee.next
-            
-        }
+            return tokens
+        })
         
+       
+        var annotations=[Annotation]()
         var searchRange=text.startIndex..<text.endIndex
         for token in tokens{
             if let foundRange=text.range(of: token.original, options: [], range: searchRange, locale: nil){
@@ -107,11 +101,11 @@ public class Tokenizer{
                 if foundRange.upperBound < text.endIndex{
                     searchRange=foundRange.upperBound..<text.endIndex
                 }
-                
             }
         }
-        
+        let furiganaa=annotations.filter({$0.containsKanji})
         return annotations
+        
     }
     
     

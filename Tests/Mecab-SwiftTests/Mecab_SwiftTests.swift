@@ -185,6 +185,21 @@ JR東日本によると、2日午後7時15分ごろ、JR新宿駅で、線路の
         }
     
     
+    func testHTML(){
+        do{
+            let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
+            let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("helicobacter").appendingPathExtension("html")
+            let htmlText=try String(contentsOf: htmlURL)
+            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let rubyString=tokenizer.addRubyTags(to: htmlText, transliteration: .hiragana, options: [.kanjiOnly])
+            XCTAssertFalse(rubyString.isEmpty)
+            XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
+        }
+        catch let error{
+            XCTFail(error.localizedDescription)
+        }
+    }
+    
     
     
     

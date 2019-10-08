@@ -30,15 +30,15 @@ struct Token{
     let partOfSpeech:PartOfSpeech
 
     init?(node:mecab_node_t, dictionary:Dictionary.DictionaryType) {
-        
-        guard let surfacePTR=UnsafeMutableRawPointer(mutating: node.surface),
-            let surface=String(bytesNoCopy: surfacePTR, length: Int(node.length), encoding: .utf8, freeWhenDone: false),
+        guard let sPTR=node.surface else{return nil}
+        let data=Data(bytes: sPTR, count: Int(node.length))
+        guard  let surface=String(data: data, encoding: .utf8),
                 let features=String(cString: node.feature, encoding: .utf8)?.split(separator: ","),
                 features.count > 0
                 else{
             return nil
         }
-        
+       
         self.surface=surface
         self.features=features.map({String($0)})
         self.partOfSpeech = .unknown
