@@ -56,12 +56,8 @@ extension String{
 
 public extension String{
     var hiraganaString:String{
-        if #available(OSX 10.11, iOS 9.0, *) {
-           return self.applyingTransform(.hiraganaToKatakana, reverse: true) ?? self
-        } else {
-            guard let mutableSelf=CFStringCreateMutableCopy(nil, 0, self as CFString) else{return self}
-            CFStringTransform(mutableSelf, nil, kCFStringTransformHiraganaKatakana, true)
-            return CFStringCreateCopy(nil, mutableSelf) as String
-        }
+        guard let mutableSelf=CFStringCreateMutableCopy(nil, 0, self as CFString) else{return self}
+        CFStringTransform(mutableSelf, nil, kCFStringTransformHiraganaKatakana, true)
+        return CFStringCreateCopy(nil, mutableSelf) as String
     }
 }

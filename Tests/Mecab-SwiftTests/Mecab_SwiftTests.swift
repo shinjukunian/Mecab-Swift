@@ -200,6 +200,25 @@ JR東日本によると、2日午後7時15分ごろ、JR新宿駅で、線路の
         }
     }
     
+    func testTransliteration(){
+        do{
+            let text="世界人口"
+            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly])
+            XCTAssertNotNil(furigana.first(where: {$0.reading == "じんこう"}))
+            
+            let romaji=tokenizer.furiganaAnnotations(for: text, transliteration: .romaji, options: [.kanjiOnly])
+            
+            XCTAssertNotNil(romaji.first(where: {$0.reading == "jinkō"}))
+            
+        }
+        catch let error{
+            XCTFail(error.localizedDescription)
+        }
+    }
+    
+    
+    
     
     
     

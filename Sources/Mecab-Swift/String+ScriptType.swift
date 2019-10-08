@@ -36,7 +36,7 @@ public extension String{
                 type.insert(.katakana)
             }
         }
-        return .noJapaneseScript
+        return type
     }
 
     @inlinable var containsKanjiCharacters:Bool{

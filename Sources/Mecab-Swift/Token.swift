@@ -28,6 +28,7 @@ struct Token{
     let surface:String
     let features:[String]
     let partOfSpeech:PartOfSpeech
+    let dictionary:Dictionary.DictionaryType
 
     init?(node:mecab_node_t, dictionary:Dictionary.DictionaryType) {
         guard let sPTR=node.surface else{return nil}
@@ -42,14 +43,21 @@ struct Token{
         self.surface=surface
         self.features=features.map({String($0)})
         self.partOfSpeech = .unknown
+        self.dictionary=dictionary
     }
     
     var reading:String{
-        if self.features.count>7{
-            return self.features[8]
+        if self.features.count > self.dictionary.readingIndex{
+            return self.features[self.dictionary.readingIndex]
         }
         return self.surface
-        
+    }
+    
+    var pronunciation:String{
+        if self.features.count > self.dictionary.pronunciationIndex{
+            return self.features[self.dictionary.pronunciationIndex]
+        }
+        return self.reading
     }
     
     var original:String{

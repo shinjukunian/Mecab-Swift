@@ -38,3 +38,20 @@ public struct Dictionary:CustomStringConvertible{
         return "Dictionary: \(url), Type: \(type)"
     }
 }
+
+
+extension Dictionary.DictionaryType{
+    var readingIndex:Int{
+        switch self {
+        case .ipadic:
+            return 7
+        }
+    }
+    
+    var pronunciationIndex:Int{
+        switch self {
+        case .ipadic:
+            return 8
+        }
+    }
+}

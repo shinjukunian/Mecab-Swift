@@ -51,7 +51,7 @@ public struct Annotation:Equatable{
         
         switch transliteration {
         case .katakana:
-            self.reading=token.reading
+            self.reading=token.pronunciation
             self.dictionaryForm=token.dictionaryForm
         case .hiragana:
             self.reading=token.reading.hiraganaString
