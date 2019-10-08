@@ -13,7 +13,7 @@ A wrapper around a dictionary, for example IPADic. A number of dictionaries for 
 public struct Dictionary:CustomStringConvertible{
     
     /**
-     A dictionary type. This type (will eventually) encapsulate the positional information of the output of the dictionary (POS etc). So far, only IPADic is implemented. Eventually, this enum might be better served by a protocol.
+     A dictionary type. This type (will eventually) encapsulate the positional information of the output of the dictionary (POS etc). So far, only IPADic is implemented.
      */
     public enum DictionaryType:CustomStringConvertible{
         case ipadic
@@ -40,7 +40,12 @@ public struct Dictionary:CustomStringConvertible{
 }
 
 
-extension Dictionary.DictionaryType{
+protocol TokenIndexProviding{
+    var readingIndex:Int {get}
+    var pronunciationIndex:Int {get}
+}
+
+extension Dictionary.DictionaryType:TokenIndexProviding{
     var readingIndex:Int{
         switch self {
         case .ipadic:

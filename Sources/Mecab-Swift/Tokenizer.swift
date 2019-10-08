@@ -81,7 +81,7 @@ public class Tokenizer{
             while true{
                 guard let n = node else {break}
             
-                    if let token=Token(node: n.pointee, dictionary: self.dictionary.type){
+                    if let token=Token(node: n.pointee, tokenDescription: self.dictionary.type){
                         tokens.append(token)
                     }
                 
@@ -103,9 +103,8 @@ public class Tokenizer{
                 }
             }
         }
-        let furiganaa=annotations.filter({$0.containsKanji})
+    
         return annotations
-        
     }
     
     
