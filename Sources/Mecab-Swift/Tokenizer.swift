@@ -94,7 +94,11 @@ public class Tokenizer{
         var annotations=[Annotation]()
         var searchRange=text.startIndex..<text.endIndex
         for token in tokens{
-            if let foundRange=text.range(of: token.original, options: [], range: searchRange, locale: nil){
+            let searchString=token.original
+            if searchString.containsKanjiCharacters == false{ // this might be a bit too strict
+                continue
+            }
+            if let foundRange=text.range(of: searchString, options: [], range: searchRange, locale: nil){
                 let annotation=Annotation(token: token, range: foundRange, transliteration: transliteration)
                 annotations.append(annotation)
                 

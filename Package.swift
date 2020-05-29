@@ -26,7 +26,12 @@ let package = Package(
                           "src/mecab-dict-index.cpp",
                           "src/mecab-system-eval.cpp",
                           "src/mecab-test-gen.cpp",
-                          "src/mecab.cpp"],
+                          "src/mecab.cpp",
+                          "src/make.bat",
+                          "src/Makefile.am",
+                          "src/Makefile.in",
+                          "src/Makefile.msvc.in"
+                ],
                 sources: ["src"],
                 publicHeadersPath: "swift",
                 cSettings: [.define("HAVE_CONFIG_H"),

@@ -101,14 +101,18 @@ public struct Annotation:Equatable{
                     let t2=transliteration[newTransliterationRange]
                     transliteration=String(t2)
                 default:
-                    let leadingDistance=self.base.distance(from: self.base.startIndex, to: hiraganaRange.lowerBound)
-                    let trailingDistance=self.base.distance(from: self.base.endIndex, to: hiraganaRange.upperBound)
-                    let transliterationStart=transliteration.index(transliteration.startIndex, offsetBy: leadingDistance)
-                    let transliterationEnd=transliteration.index(transliteration.endIndex, offsetBy: trailingDistance)
-                    let newTransliterationRange=transliterationStart..<transliterationEnd
-                    let length=self.base.distance(from: hiraganaRange.lowerBound, to: hiraganaRange.upperBound)
-                    let replacementString=String(repeatElement("　", count: length))
-                    transliteration.replaceSubrange(newTransliterationRange, with: replacementString)
+                    let detectedCenterHiragana=self.base[hiraganaRange]
+                    transliteration = transliteration.replacingOccurrences(of: detectedCenterHiragana, with: "　")
+                    //this only works when the kanji is has a reading of exactly one character
+                //the hackish replacement liekly works better
+//                    let leadingDistance=self.base.distance(from: self.base.startIndex, to: hiraganaRange.lowerBound)
+//                    let trailingDistance=self.base.distance(from: self.base.endIndex, to: hiraganaRange.upperBound)
+//                    let transliterationStart=transliteration.index(transliteration.startIndex, offsetBy: leadingDistance)
+//                    let transliterationEnd=transliteration.index(transliteration.endIndex, offsetBy: trailingDistance)
+//                    let newTransliterationRange=transliterationStart..<transliterationEnd
+//                    let length=self.base.distance(from: hiraganaRange.lowerBound, to: hiraganaRange.upperBound)
+//                    let replacementString=String(repeatElement("　", count: length))
+//                    transliteration.replaceSubrange(newTransliterationRange, with: replacementString)
                 }
             }
             return FuriganaAnnotation(reading: transliteration , range: range)
