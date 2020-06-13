@@ -57,7 +57,7 @@ final class Mecab_SwiftTests: XCTestCase {
             let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
             XCTAssertNotNil(tokenizer)
             let string="熊が怖いです。"
-            let annotations=tokenizer.tokenize(text: string).filter({$0.containsKanji}).map({$0.furiganaAnnotation(for: string)})
+            let annotations=tokenizer.tokenize(text: string).filter({$0.containsKanji}).compactMap({$0.furiganaAnnotation(for: string)})
             XCTAssertFalse(annotations.isEmpty)
             let expectedFurigana=["くま","こわ"]
             for annotation in annotations{
@@ -102,7 +102,7 @@ final class Mecab_SwiftTests: XCTestCase {
             let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
             XCTAssertNotNil(tokenizer)
             let string="打ち上げパーティー"
-            let annotations=tokenizer.tokenize(text: string).filter({$0.containsKanji}).map({$0.furiganaAnnotation(for: string)})
+            let annotations=tokenizer.tokenize(text: string).filter({$0.containsKanji}).compactMap({$0.furiganaAnnotation(options: [.kanjiOnly], for: string)})
             XCTAssertFalse(annotations.isEmpty)
             let expectedFurigana=["う　あ"]
             for annotation in annotations{
@@ -125,7 +125,7 @@ final class Mecab_SwiftTests: XCTestCase {
             let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
             XCTAssertNotNil(tokenizer)
             let string="お知らせです"
-            let annotations=tokenizer.tokenize(text: string).filter({$0.containsKanji}).map({$0.furiganaAnnotation(for: string)})
+            let annotations=tokenizer.tokenize(text: string).filter({$0.containsKanji}).compactMap({$0.furiganaAnnotation(options: [.kanjiOnly], for: string)})
             XCTAssertFalse(annotations.isEmpty)
             let expectedFurigana=["し"]
             for annotation in annotations{
@@ -230,6 +230,40 @@ JR東日本によると、2日午後7時15分ごろ、JR新宿駅で、線路の
             let romaji=tokenizer.furiganaAnnotations(for: text, transliteration: .romaji, options: [.kanjiOnly])
             
             XCTAssertNotNil(romaji.first(where: {$0.reading == "jinkō"}))
+            
+        }
+        catch let error{
+            XCTFail(error.localizedDescription)
+        }
+    }
+    
+    func testFilter1(){
+        do{
+            let text="世界人口"
+            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let disallowed=["口","人"]
+            let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: Set(disallowed), strict: true)])
+            XCTAssertNil(furigana.first(where: {$0.reading == "じんこう"}))
+            XCTAssertNotNil(furigana.first(where: {$0.reading == "せかい"}))
+            XCTAssert(furigana.count == 1)
+            
+            
+        }
+        catch let error{
+            XCTFail(error.localizedDescription)
+        }
+    }
+    
+    func testFilter2(){
+        do{
+            let text="世界人口"
+            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let disallowed=["口"]
+            let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: Set(disallowed), strict: false)])
+            XCTAssertNotNil(furigana.first(where: {$0.reading == "じんこう"}))
+            XCTAssertNotNil(furigana.first(where: {$0.reading == "せかい"}))
+            XCTAssert(furigana.count == 2)
+            
             
         }
         catch let error{

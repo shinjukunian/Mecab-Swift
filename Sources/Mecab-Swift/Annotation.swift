@@ -17,24 +17,6 @@ import Foundation
 
 public struct Annotation:Equatable{
     
-    /**
-     Various options to format `Annotation` output
-     */
-    public struct AnnotationOptions:OptionSet{
-        public let rawValue: Int
-        
-        /**
-        The reading of the `Annotation` should only conatain information for the actual Kanji characters, skipping leading or trailing Kana, e.g. okurigana.
-         
-         For example the reading for 打ち合わせ would typically be うちわわせ. With `kanjiOnly` set, the reading skips the kana common in reading and base, the resulting reading is う＿あ, with ＿ representing a fulll-width space. The start and end of th erange are adjusted appropriately.
-         */
-        public static let kanjiOnly=AnnotationOptions(rawValue: 1 << 0)
-        
-        public init(rawValue: Int){
-            self.rawValue=rawValue
-        }
-    }
-    
     public let base:String
     public let reading:String
     public let partOfSpeech:PartOfSpeech
@@ -70,13 +52,35 @@ public struct Annotation:Equatable{
     }
     
     /**
+       A convenience function to create properly formatted `FuriganaAnnotations` from an `Annotation`
+    - parameters:
+           - string: the underlying text for which the `FuriganaAnnotation` should be generated. This parameter is required because some options can change the range of the token in the base text.
+    - returns: A  `FuriganaAnnotation`.
+    */
+    public func furiganaAnnotation(for string:String)->FuriganaAnnotation{
+         return FuriganaAnnotation(reading: self.reading , range: self.range)
+    }
+    
+    
+    
+    /**
         A convenience function to create properly formatted `FuriganaAnnotations` from an `Annotation`
      - parameters:
             - options: `AnnotationOptions` how to format the `FuriganaAnnotations`
             - string: the underlying text for which the `FuriganaAnnotation` should be generated. This parameter is required because some options can change the range of the token in the base text.
      - returns: A  `FuriganaAnnotation`.
      */
-    public func furiganaAnnotation(options:[AnnotationOptions] = [.kanjiOnly], for string:String)->FuriganaAnnotation{
+    public func furiganaAnnotation(options:[AnnotationOption] = [.kanjiOnly], for string:String)->FuriganaAnnotation?{
+        
+        for case let AnnotationOption.filter(disallowed, strict) in options{
+            let kanji=Set(self.base.kanjiCharacters)
+            if strict == true, disallowed.isDisjoint(with: kanji) == false{
+                return nil
+            }
+            else if strict == false, disallowed.isSuperset(of: kanji){
+                return nil
+            }
+        }
         
         if options.contains(.kanjiOnly){
             let hiraganaRanges=self.base.hiraganaRanges

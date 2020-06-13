@@ -122,11 +122,11 @@ public class Tokenizer{
        - options : Options to pass to the tokenizer
     - returns: An array of `FuriganaAnnotations`, which contain the reading o fthe token and the range of the token in the original text.
     */
-    public func furiganaAnnotations(for text:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOptions] = [.kanjiOnly])->[FuriganaAnnotation]{
+    public func furiganaAnnotations(for text:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->[FuriganaAnnotation]{
         
         return self.tokenize(text: text, transliteration: transliteration)
             .filter({$0.containsKanji})
-            .map({$0.furiganaAnnotation(options: options, for: text)})
+            .compactMap({$0.furiganaAnnotation(options: options, for: text)})
     }
     
     /**
@@ -135,11 +135,11 @@ public class Tokenizer{
         `<ruby>` tags are added to all tokens that contain Kanji characters, regardless of whether they are on specific parts of an HTML document or not. This can potentially disrupt scripts or navigation.
        - parameters:
           - htmlText: A `string` that contains the text to tokenize.
-          - transliteration : A `Transliteration` method. The text content of found tokens will be displayed using this.
-          - options : Options to pass to the tokenizer
+          - transliteration: A `Transliteration` method. The text content of found tokens will be displayed using this.
+          - options: Options to pass to the tokenizer
        - returns: A text with `<ruby>` annotations.
        */
-    public func addRubyTags(to htmlText:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOptions] = [.kanjiOnly])->String{
+    public func addRubyTags(to htmlText:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->String{
         let furigana=self.furiganaAnnotations(for: htmlText, transliteration: transliteration, options: options)
         var searchRange:Range<String.Index> = htmlText.startIndex ..< htmlText.endIndex
         var outString=htmlText
