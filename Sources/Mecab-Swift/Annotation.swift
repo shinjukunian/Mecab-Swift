@@ -72,7 +72,7 @@ public struct Annotation:Equatable{
      */
     public func furiganaAnnotation(options:[AnnotationOption] = [.kanjiOnly], for string:String)->FuriganaAnnotation?{
         
-        for case let AnnotationOption.filter(disallowed, strict) in options{
+         for case let AnnotationOption.filter(disallowed, strict) in options{
             let kanji=Set(self.base.kanjiCharacters)
             if strict == true, disallowed.isDisjoint(with: kanji) == false{
                 return nil

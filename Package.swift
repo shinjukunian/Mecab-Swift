@@ -9,7 +9,7 @@ let package = Package(
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
             name: "Mecab-Swift",
-            targets: ["Mecab-Swift"]),
+            targets: ["Mecab-Swift", "CharacterFilter"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -44,8 +44,10 @@ let package = Package(
             name: "Mecab-Swift",
             dependencies: ["mecab"]),
 
+        .target(name: "CharacterFilter"),
+        
         .testTarget(
             name: "Mecab-SwiftTests",
-            dependencies: ["Mecab-Swift"]),
+            dependencies: ["Mecab-Swift", "CharacterFilter"]),
     ]
 )

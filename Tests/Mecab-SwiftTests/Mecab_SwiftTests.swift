@@ -1,5 +1,6 @@
 import XCTest
 @testable import Mecab_Swift
+import CharacterFilter
 
 final class Mecab_SwiftTests: XCTestCase {
     
@@ -269,8 +270,27 @@ JR東日本によると、2日午後7時15分ごろ、JR新宿駅で、線路の
         catch let error{
             XCTFail(error.localizedDescription)
         }
+        
+        
     }
     
+    
+    func testFilter3(){
+        do{
+            let text="世界人口"
+            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let disallowed=SchoolYearFilter.elementary2.disallowedCharacters
+            let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: disallowed, strict: false)])
+            XCTAssertNil(furigana.first(where: {$0.reading == "じんこう"}))
+            XCTAssertNotNil(furigana.first(where: {$0.reading == "せかい"}))
+            XCTAssert(furigana.count == 1)
+            
+            
+        }
+        catch let error{
+            XCTFail(error.localizedDescription)
+        }
+    }
     
     
     
