@@ -29,6 +29,11 @@ public struct FuriganaAnnotation:CustomStringConvertible,Equatable,Comparable{
     public static func < (lhs: FuriganaAnnotation, rhs: FuriganaAnnotation) -> Bool {
         return lhs.range.lowerBound < rhs.range.lowerBound
     }
+    
+    public init(reading:String, range:Range<String.Index>){
+        self.reading=reading
+        self.range=range
+    }
 }
 
 #if canImport(CoreText)
