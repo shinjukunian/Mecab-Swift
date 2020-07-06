@@ -1,10 +1,12 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.3
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
     name: "Mecab-Swift",
+    defaultLocalization: "en",
+    
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
@@ -23,6 +25,16 @@ let package = Package(
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         
+        .target(
+            name: "Mecab-Swift",
+            dependencies: ["mecab"]),
+
+        .target(name: "CharacterFilter"),
+        
+        .testTarget(
+            name: "Mecab-SwiftTests",
+            dependencies: ["Mecab-Swift", "CharacterFilter"]),
+        
         .target(name: "mecab", dependencies: [],
                 path: "Sources/mecab/mecab",
                 exclude: ["src/mecab-cost-train.cpp",
@@ -34,24 +46,55 @@ let package = Package(
                           "src/make.bat",
                           "src/Makefile.am",
                           "src/Makefile.in",
-                          "src/Makefile.msvc.in"
+                          "src/Makefile.msvc.in",
+                          "csharp",
+                          "doc",
+                          "example",
+                          "java",
+                          "man",
+                          "misc",
+                          "perl",
+                          "python",
+                          "ruby",
+                          "swig",
+                          "tests",
+                          "aclocal.m4",
+                          "AUTHORS",
+                          "autogen.sh",
+                          "ChangeLog",
+                          "config.guess",
+                          "config.h.in",
+                          "config.rpath",
+                          "config.sub",
+                          "configure",
+                          "configure.in",
+                          "GPL",
+                          "INSTALL",
+                          "LGPL",
+                          "install-sh",
+                          "libtool",
+                          "ltmain.sh",
+                          "Makefile.am",
+                          "Makefile.in",
+                          "Makefile.train",
+                          "mecab-config.in",
+                          "mecab.iss.in",
+                          "mecabrc.in",
+                          "missing",
+                          "mkinstalldirs",
+                          "NEWS",
+                          "README",
+                          "stamp-h.in",
+                          
                 ],
+                
                 sources: ["src"],
+                resources: [.copy("BSD"), .copy("COPYING")],
                 publicHeadersPath: "swift",
                 cSettings: [.define("HAVE_CONFIG_H"),
                         .headerSearchPath(".")],
                 cxxSettings: [.define("HAVE_ICONV")],
                 swiftSettings: nil,
                 linkerSettings: [.linkedLibrary("iconv")]),
-         
-        .target(
-            name: "Mecab-Swift",
-            dependencies: ["mecab"]),
-
-        .target(name: "CharacterFilter"),
-        
-        .testTarget(
-            name: "Mecab-SwiftTests",
-            dependencies: ["Mecab-Swift", "CharacterFilter"]),
     ]
 )

@@ -7,6 +7,63 @@
 
 import Foundation
 
+public enum SchoolYearFilter:String, CharacterFiltering,Codable,CaseIterable,Hashable{
+    
+    case elementary1
+    case elementary2
+    case elementary3
+    case elementary4
+    case elementary5
+    case elementary6
+    case middle1
+    case middle2
+    case middle3
+    case highSchool
+    
+    
+    
+    public var disallowedCharacters: Set<String>{
+        switch self {
+        case .elementary1:
+            return Set(SchoolYearFilter.elementary1Characters.map({String($0)}))
+        case .elementary2:
+            return SchoolYearFilter.elementary1.disallowedCharacters.union(SchoolYearFilter.elementary2Characters.map({String($0)}))
+        case .elementary3:
+            return SchoolYearFilter.elementary2.disallowedCharacters.union(SchoolYearFilter.elementary3Characters.map({String($0)}))
+        case .elementary4:
+            return SchoolYearFilter.elementary3.disallowedCharacters.union(SchoolYearFilter.elementary4Characters.map({String($0)}))
+        case .elementary5:
+            return SchoolYearFilter.elementary4.disallowedCharacters.union(SchoolYearFilter.elementary5Characters.map({String($0)}))
+        case .elementary6:
+            return SchoolYearFilter.elementary5.disallowedCharacters.union(SchoolYearFilter.elementary6Characters.map({String($0)}))
+        case .middle1:
+            return SchoolYearFilter.elementary6.disallowedCharacters.union(SchoolYearFilter.middle1Characters.map({String($0)}))
+        case .middle2:
+            return SchoolYearFilter.middle1.disallowedCharacters.union(SchoolYearFilter.middle2Characters.map({String($0)}))
+        case .middle3:
+            return SchoolYearFilter.middle2.disallowedCharacters.union(SchoolYearFilter.middle3Characters.map({String($0)}))
+        case .highSchool:
+            return SchoolYearFilter.middle3.disallowedCharacters.union(SchoolYearFilter.highSchoolCharacters.map({String($0)}))
+        
+        }
+    }
+       
+    public var localizedName: String{
+        return Bundle.module.localizedString(forKey: self.rawValue, value: self.rawValue, table: "Localizable")
+    }
+    
+    public init?(data: Data) {
+        if let f=try? JSONDecoder().decode(SchoolYearFilter.self, from: data){
+            self=f
+        }
+        else{
+            return nil
+        }
+    }
+}
+
+
+
 extension SchoolYearFilter{
     static let elementary1Characters = "一二三四五六七八九十百千上下左右中大小月日年早木林山川土空田天生花草虫犬人名女男子目耳口手足見音力気円入出立休先夕本文字学校村町森正水火玉王石竹糸貝車金雨赤青白"
     

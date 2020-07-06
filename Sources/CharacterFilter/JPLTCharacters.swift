@@ -7,6 +7,58 @@
 
 import Foundation
 
+
+public enum JLPTFilter:String, CharacterFiltering, Equatable, Codable, CaseIterable{
+    
+    case JLTP5
+    case JLPT4
+    case JLPT3
+    case JLPT2
+    case JLPT1
+    
+    public var disallowedCharacters: Set<String>{
+        switch self {
+        case .JLTP5:
+            return Set(JLPTFilter.JLPT5Characters.map({String($0)}))
+        case .JLPT4:
+            return JLPTFilter.JLTP5.disallowedCharacters.union(JLPTFilter.JLPT4Characters.map({String($0)}))
+        case .JLPT3:
+            return JLPTFilter.JLPT4.disallowedCharacters.union(JLPTFilter.JLPT3Characters.map({String($0)}))
+        case .JLPT2:
+            return JLPTFilter.JLPT3.disallowedCharacters.union(JLPTFilter.JLPT2Characters.map({String($0)}))
+        case .JLPT1:
+            return JLPTFilter.JLPT2.disallowedCharacters.union(JLPTFilter.JLPT1Characters.map({String($0)}))
+        
+        }
+    }
+    
+    
+    public var localizedName: String{
+        let tableName = "Localizable"
+        switch self {
+        case .JLPT1:
+            return Bundle.module.localizedString(forKey: "JLPT1", value: "JLPT Level N1", table: tableName)
+        case .JLPT2:
+            return Bundle.module.localizedString(forKey: "JLPT2", value: "JLPT Level N2", table: tableName)
+        case .JLPT3:
+            return Bundle.module.localizedString(forKey: "JLPT3", value: "JLPT Level N3", table: tableName)
+        case .JLPT4:
+            return Bundle.module.localizedString(forKey: "JLPT4", value: "JLPT Level N4", table: tableName)
+        case .JLTP5:
+            return Bundle.module.localizedString(forKey: "JLPT5", value: "JLPT Level N5", table: tableName)
+        }
+    }
+    
+    public init?(data: Data) {
+        if let f=try? JSONDecoder().decode(JLPTFilter.self, from: data){
+            self=f
+        }
+        else{
+            return nil
+        }
+    }
+}
+
 extension JLPTFilter{
     static let JLPT5Characters = "安一飲右雨駅円火花下何会外学間気九休魚金空月見言古五後午語校口行高国今左三山四子耳時七車社手週十出書女小少上食新人水生西川千先前足多大男中長天店電土東道読南ニ日入年買白八半百父分聞母北木本毎万名目友来立六話"
     
