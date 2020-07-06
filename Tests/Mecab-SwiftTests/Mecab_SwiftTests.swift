@@ -1,5 +1,5 @@
 import XCTest
-@testable import Mecab_Swift
+import Mecab_Swift
 import CharacterFilter
 
 final class Mecab_SwiftTests: XCTestCase {

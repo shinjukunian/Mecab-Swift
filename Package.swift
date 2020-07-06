@@ -10,6 +10,10 @@ let package = Package(
         .library(
             name: "Mecab-Swift",
             targets: ["Mecab-Swift", "CharacterFilter"]),
+        
+        .library(
+            name: "CharacterFilter",
+            targets: ["CharacterFilter"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
