@@ -7,12 +7,12 @@
 
 import Foundation
 
-public protocol CharacterFiltering {
+public protocol CharacterFiltering:Equatable,Codable,CaseIterable {
     var disallowedCharacters:Set<String> {get}
     var localizedName:String {get}
 }
 
-public enum SchoolYearFilter:String, CharacterFiltering, Equatable, Codable, CaseIterable{
+public enum SchoolYearFilter:String, CharacterFiltering{
    
     case elementary1
     case elementary2
