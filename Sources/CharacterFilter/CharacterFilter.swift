@@ -16,7 +16,6 @@ public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
     
     public typealias AllCases = [CharacterFilter]
     
-    
     case none
     case schoolYear(year:SchoolYearFilter)
     case JLPT(level:JLPTFilter)
@@ -92,10 +91,21 @@ public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
         }
     }
     
+    public var localizedTypeName: String{
+        switch self {
+        case .none:
+            return Bundle.module.localizedString(forKey: "none", value: "None", table: "Localizable")
+        case .JLPT(_):
+            return Bundle.module.localizedString(forKey: "JLPT", value: "JLPT", table: "Localizable")
+        case .schoolYear(_):
+            return Bundle.module.localizedString(forKey: "schoolyear", value: "School Year", table: "Localizable")
+        }
+    }
+    
     public var localizedName: String{
         switch self {
         case .none:
-            return ""
+            return self.localizedTypeName
         case .JLPT(let level):
             return level.localizedName
         case .schoolYear(let year):

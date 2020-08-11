@@ -15,7 +15,11 @@ let package = Package(
         
         .library(
             name: "CharacterFilter",
-            targets: ["CharacterFilter"])
+            targets: ["CharacterFilter"]),
+        
+        .library(
+            name: "StringTools",
+            targets: ["StringTools"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -27,9 +31,10 @@ let package = Package(
         
         .target(
             name: "Mecab-Swift",
-            dependencies: ["mecab"]),
+            dependencies: ["mecab", "StringTools"]),
 
         .target(name: "CharacterFilter"),
+        .target(name: "StringTools"),
         
         .testTarget(
             name: "Mecab-SwiftTests",

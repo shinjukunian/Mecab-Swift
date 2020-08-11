@@ -1,5 +1,6 @@
 import mecab
 import Foundation
+import StringTools
 
 /**
 A tokenizer /  morphological analyzer for Japanese

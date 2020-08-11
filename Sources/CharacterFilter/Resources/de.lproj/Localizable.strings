@@ -14,3 +14,7 @@
 "middle2" = "Mittelschule 2. Klasse";
 "middle3" = "Mittelschule 3. Klasse";
 "highSchool" = "Oberschule";
+
+"none" = "Kein Filter";
+"JLPT" = "JLPT";
+"schoolyear" = "Schuljahr";

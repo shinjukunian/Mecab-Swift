@@ -7,6 +7,7 @@
 
 import Foundation
 import mecab
+import StringTools
 
 public enum PartOfSpeech:CustomStringConvertible{
     case verb

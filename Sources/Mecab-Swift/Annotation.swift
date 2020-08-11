@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import StringTools
 /**
  `Annotation`s encapsulate the information of the `Tokenizer`.
  - base: represents the string value of the token in the original text

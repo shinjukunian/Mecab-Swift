@@ -14,3 +14,8 @@
 "middle2" = "中学校２年";
 "middle3" = "中学校３年";
 "highSchool" = "高等学校";
+
+
+"none" = "なし";
+"JLPT" = "日本語能力試験";
+"schoolyear" = "学年";
