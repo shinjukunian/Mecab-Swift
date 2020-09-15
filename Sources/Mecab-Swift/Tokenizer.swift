@@ -148,7 +148,7 @@ public class Tokenizer{
             
             if let tokenRange=outString.range(of: htmlText[annotation.range], options: [], range: searchRange, locale: nil){
                 let htmlRuby="<ruby>\(htmlText[annotation.range])<rt>\(annotation.reading)</rt></ruby>"
-                outString=outString.replacingCharacters(in: tokenRange, with: htmlRuby)
+                outString.replaceSubrange(tokenRange, with: htmlRuby)
                 searchRange = outString.index(tokenRange.lowerBound, offsetBy: htmlRuby.count) ..< outString.endIndex
                 
             }

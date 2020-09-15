@@ -9,6 +9,7 @@ import Foundation
 
 public extension String{
     
+    @available(OSX 10.11, *)
     func furiganaReplacements()->[FuriganaAnnotation]{
         let japaneseLocale=Locale(identifier: "ja_JP")
         
