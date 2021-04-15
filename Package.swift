@@ -40,6 +40,10 @@ let package = Package(
             name: "Mecab-SwiftTests",
             dependencies: ["Mecab-Swift", "CharacterFilter"]),
         
+        .testTarget(
+            name: "StringToolsTests",
+            dependencies: ["StringTools"]),
+        
         .target(name: "mecab", dependencies: [],
                 path: "Sources/mecab/mecab",
                 exclude: ["src/mecab-cost-train.cpp",

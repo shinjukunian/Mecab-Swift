@@ -241,8 +241,6 @@ final class Mecab_SwiftTests: XCTestCase {
             XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
             
             
-            
-            
         }
         catch let error{
             XCTFail(error.localizedDescription)
