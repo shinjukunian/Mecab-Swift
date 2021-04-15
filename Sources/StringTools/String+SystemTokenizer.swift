@@ -9,12 +9,20 @@ import Foundation
 
 public extension String{
     
+    /**
+     A convenience structure that encapsulates a token, with minimum information.
+     - `base`: the original string as found in the text
+     - `reading`: the transliterated string as katakana, following the format of `mecab`
+     - `range`: the range of the base string in the underlying text
+     */
+    
     struct SystemTokenizerAnnotation: FuriganaAnnotating{
         public let base:String
         public let reading:String
         public let range:Range<String.Index>
     }
-    
+    /**A convenience function to use the system tokenizer to tokenize strings.
+     */
     func systemTokenizerFuriganaAnnotations()->[SystemTokenizerAnnotation]{
         let japaneseLocale=Locale(identifier: "ja_JP")
         
@@ -65,10 +73,14 @@ public extension String{
         return annotations
     }
     
-    
-    
+    /**
+     A convenience function to get system tokenizer furigana annotations with Hiragana
+     */
     @available(OSX 10.11, *)
     func furiganaReplacements()->[FuriganaAnnotation]{
-        return self.systemTokenizerFuriganaAnnotations().compactMap {$0.furiganaAnnotation(for: self, kanjiOnly: true)}
+        return self.systemTokenizerFuriganaAnnotations().compactMap {annotation in
+            let hiragana=SystemTokenizerAnnotation(base: annotation.base, reading: annotation.reading.hiraganaString, range: annotation.range)
+            return hiragana.furiganaAnnotation(for: self, kanjiOnly: true)}
+        
     }
 }
