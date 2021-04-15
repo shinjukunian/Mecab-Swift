@@ -30,7 +30,7 @@ public class Tokenizer{
     
     private let dictionary:Dictionary
     
-    fileprivate let _mecab:OpaquePointer
+    fileprivate let _mecab:OpaquePointer!
     
     
     /**
@@ -49,22 +49,26 @@ public class Tokenizer{
      */
     public init(dictionary:Dictionary) throws{
         self.dictionary=dictionary
-        let tokenizer=try dictionary.url.withUnsafeFileSystemRepresentation({path->OpaquePointer in
-            guard let path=path,
-                let dictPath=String(cString: path).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
-                //MeCab splits the commands by spaces, so we need to escape the path passed inti the function.
-                //We replace the percent encoded space when opening the dictionary. This is mostly relevant when the dictionary os located inside a folder of which we cannot control the name, i.e. Application Support
-                else{ throw TokenizerError.initializationFailure("URL Conversion Failed \(dictionary)")}
+        switch dictionary.type {
+        case .systemTokenizer:
+            _mecab=nil
+        default:
+            let tokenizer=try dictionary.url.withUnsafeFileSystemRepresentation({path->OpaquePointer in
+                guard let path=path,
+                    let dictPath=String(cString: path).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
+                    //MeCab splits the commands by spaces, so we need to escape the path passed inti the function.
+                    //We replace the percent encoded space when opening the dictionary. This is mostly relevant when the dictionary os located inside a folder of which we cannot control the name, i.e. Application Support
+                    else{ throw TokenizerError.initializationFailure("URL Conversion Failed \(dictionary)")}
+                
+                guard let tokenizer=mecab_new2("-d \(dictPath)") else {
+                    let error=String(cString: mecab_strerror(nil), encoding: .utf8) ?? ""
+                    throw TokenizerError.initializationFailure("Opening Dictionary Failed \(dictionary) \(error)")
+                }
+                return tokenizer
+            })
             
-            guard let tokenizer=mecab_new2("-d \(dictPath)") else {
-                let error=String(cString: mecab_strerror(nil), encoding: .utf8) ?? ""
-                throw TokenizerError.initializationFailure("Opening Dictionary Failed \(dictionary) \(error)")
-            }
-            return tokenizer
-        })
-        
-        _mecab=tokenizer
-
+            _mecab=tokenizer
+        }
     }
     
     /**
@@ -76,40 +80,49 @@ public class Tokenizer{
      */
     public func tokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
         
-         let tokens=text.withCString({s->[Token] in
-            var tokens=[Token]()
-            var node=mecab_sparse_tonode(self._mecab, s)
-            while true{
-                guard let n = node else {break}
-            
-                    if let token=Token(node: n.pointee, tokenDescription: self.dictionary.type){
-                        tokens.append(token)
-                    }
-                
-                    node = UnsafePointer(n.pointee.next)
-            }
-            return tokens
-        })
-        
-       
-        var annotations=[Annotation]()
-        var searchRange=text.startIndex..<text.endIndex
-        for token in tokens{
-            let searchString=token.original
-            if searchString.containsKanjiCharacters == false{ // this might be a bit too strict
-                continue
-            }
-            if let foundRange=text.range(of: searchString, options: [], range: searchRange, locale: nil){
-                let annotation=Annotation(token: token, range: foundRange, transliteration: transliteration)
-                annotations.append(annotation)
-                
-                if foundRange.upperBound < text.endIndex{
-                    searchRange=foundRange.upperBound..<text.endIndex
-                }
-            }
+        switch dictionary.type {
+        case .systemTokenizer:
+            return self.systemTokenizerTokenize(text: text, transliteration: transliteration)
+        default:
+            return mecabTokenize(text: text, transliteration: transliteration)
         }
+    }
     
-        return annotations
+    fileprivate func mecabTokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
+        let tokens=text.withCString({s->[Token] in
+           var tokens=[Token]()
+           var node=mecab_sparse_tonode(self._mecab, s)
+           while true{
+               guard let n = node else {break}
+           
+                   if let token=Token(node: n.pointee, tokenDescription: self.dictionary.type){
+                       tokens.append(token)
+                   }
+               
+                   node = UnsafePointer(n.pointee.next)
+           }
+           return tokens
+       })
+       
+      
+       var annotations=[Annotation]()
+       var searchRange=text.startIndex..<text.endIndex
+       for token in tokens{
+           let searchString=token.original
+           if searchString.containsKanjiCharacters == false{ // this might be a bit too strict
+               continue
+           }
+           if let foundRange=text.range(of: searchString, options: [], range: searchRange, locale: nil){
+               let annotation=Annotation(token: token, range: foundRange, transliteration: transliteration)
+               annotations.append(annotation)
+               
+               if foundRange.upperBound < text.endIndex{
+                   searchRange=foundRange.upperBound..<text.endIndex
+               }
+           }
+       }
+   
+       return annotations
     }
     
     

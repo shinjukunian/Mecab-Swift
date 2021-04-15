@@ -16,10 +16,16 @@ public struct Dictionary:CustomStringConvertible{
      A dictionary type. This type (will eventually) encapsulate the positional information of the output of the dictionary (POS etc). So far, only IPADic is implemented.
      */
     public enum DictionaryType:CustomStringConvertible{
+        #if canImport(CoreFoundation)
+        case systemTokenizer
+        #endif
+        
         case ipadic
         
         public var description: String{
             switch self {
+            case .systemTokenizer:
+                return "System Tokenizer"
             case .ipadic:
                 return "IPADic"
             }
@@ -28,6 +34,10 @@ public struct Dictionary:CustomStringConvertible{
     
     let url:URL
     let type:DictionaryType
+    
+    #if canImport(CoreFoundation)
+    public static let systemDictionary = Dictionary(url: URL(fileURLWithPath: ""), type: .systemTokenizer)
+    #endif
     
     public init(url:URL, type:DictionaryType) {
         self.url=url
@@ -50,6 +60,8 @@ extension Dictionary.DictionaryType:TokenIndexProviding{
         switch self {
         case .ipadic:
             return 7
+        case .systemTokenizer:
+            return 0
         }
     }
     
@@ -57,6 +69,8 @@ extension Dictionary.DictionaryType:TokenIndexProviding{
         switch self {
         case .ipadic:
             return 8
+        case .systemTokenizer:
+            return 0
         }
     }
 }

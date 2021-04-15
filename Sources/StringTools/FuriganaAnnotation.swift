@@ -36,6 +36,7 @@ public struct FuriganaAnnotation:CustomStringConvertible,Equatable,Comparable{
     }
 }
 
+
 #if canImport(CoreText)
 import CoreText
 

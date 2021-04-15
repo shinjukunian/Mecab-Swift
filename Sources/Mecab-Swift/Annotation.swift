@@ -15,7 +15,7 @@ import StringTools
  - dictionaryForm: in case of verbs or adjectives, the dictionary form of the token.
  */
 
-public struct Annotation:Equatable{
+public struct Annotation:Equatable, FuriganaAnnotating{
     
     public let base:String
     public let reading:String
@@ -25,23 +25,27 @@ public struct Annotation:Equatable{
     let transliteration:Tokenizer.Transliteration
     
     init(token:Token, range:Range<String.Index>, transliteration:Tokenizer.Transliteration) {
-        self.base=token.original
-        
-        self.partOfSpeech=token.partOfSpeech
+        self.init(base: token.original, reading: token.reading, range: range, dictionaryForm: token.dictionaryForm, transliteration: transliteration, POS: token.partOfSpeech)
+    }
+    
+    init(base:String, reading:String, range:Range<String.Index>, dictionaryForm:String, transliteration:Tokenizer.Transliteration, POS:PartOfSpeech = .unknown){
+        self.base=base
         self.range=range
-        self.transliteration=transliteration
+        self.partOfSpeech = POS
+        self.transliteration = transliteration
         
         switch transliteration {
         case .katakana:
-            self.reading=token.pronunciation
-            self.dictionaryForm=token.dictionaryForm
+            self.reading=reading
+            self.dictionaryForm=dictionaryForm
         case .hiragana:
-            self.reading=token.reading.hiraganaString
-            self.dictionaryForm=token.dictionaryForm.hiraganaString
+            self.reading=reading.hiraganaString
+            self.dictionaryForm=dictionaryForm.hiraganaString
         case .romaji:
-            self.reading=token.reading.romanizedString(method: .hepburn)
-            self.dictionaryForm=token.dictionaryForm.romanizedString(method: .hepburn)
+            self.reading=reading.romanizedString(method: .hepburn)
+            self.dictionaryForm=dictionaryForm.romanizedString(method: .hepburn)
         }
+        
     }
     
     /**
@@ -83,43 +87,7 @@ public struct Annotation:Equatable{
         }
         
         if options.contains(.kanjiOnly){
-            let hiraganaRanges=self.base.hiraganaRanges
-            var transliteration=self.reading
-            var range=self.range
-            for hiraganaRange in hiraganaRanges{
-                switch hiraganaRange {
-                case _ where hiraganaRange.upperBound == self.base.endIndex:
-                    let trailingDistance=self.base.distance(from: self.base.endIndex, to: hiraganaRange.lowerBound)
-                    let newEndIndex=string.index(range.upperBound, offsetBy: trailingDistance)
-                    range=range.lowerBound..<newEndIndex
-                    let transliterationEnd=transliteration.index(transliteration.endIndex, offsetBy: trailingDistance)
-                    let newTransliterationRange=transliteration.startIndex..<transliterationEnd
-                    let t2=transliteration[newTransliterationRange]
-                    transliteration=String(t2)
-                case _ where hiraganaRange.lowerBound == self.base.startIndex:
-                    let leadingDistance=self.base.distance(from: self.base.startIndex, to: hiraganaRange.upperBound)
-                    let newStartIndex=string.index(range.lowerBound, offsetBy: leadingDistance)// wrong?
-                    range=newStartIndex..<range.upperBound
-                    let transliterationStart=transliteration.index(transliteration.startIndex, offsetBy: leadingDistance)
-                    let newTransliterationRange=transliterationStart..<transliteration.endIndex
-                    let t2=transliteration[newTransliterationRange]
-                    transliteration=String(t2)
-                default:
-                    let detectedCenterHiragana=self.base[hiraganaRange]
-                    transliteration = transliteration.replacingOccurrences(of: detectedCenterHiragana, with: "　")
-                    //this only works when the kanji is has a reading of exactly one character
-                //the hackish replacement liekly works better
-//                    let leadingDistance=self.base.distance(from: self.base.startIndex, to: hiraganaRange.lowerBound)
-//                    let trailingDistance=self.base.distance(from: self.base.endIndex, to: hiraganaRange.upperBound)
-//                    let transliterationStart=transliteration.index(transliteration.startIndex, offsetBy: leadingDistance)
-//                    let transliterationEnd=transliteration.index(transliteration.endIndex, offsetBy: trailingDistance)
-//                    let newTransliterationRange=transliterationStart..<transliterationEnd
-//                    let length=self.base.distance(from: hiraganaRange.lowerBound, to: hiraganaRange.upperBound)
-//                    let replacementString=String(repeatElement("　", count: length))
-//                    transliteration.replaceSubrange(newTransliterationRange, with: replacementString)
-                }
-            }
-            return FuriganaAnnotation(reading: transliteration , range: range)
+            return self.furiganaAnnotation(for: string, kanjiOnly: true)
         }
         else{
             return FuriganaAnnotation(reading: self.reading , range: self.range)
