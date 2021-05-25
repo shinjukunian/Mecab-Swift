@@ -125,3 +125,20 @@ public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
     }
 }
 
+
+extension CharacterFilter:Identifiable, Hashable{
+    public var id: String{
+        switch self {
+        case .none:
+            return "none"
+        case .JLPT(let level):
+            return "JLPT_\(level.rawValue)"
+        case .schoolYear(let year):
+            return "JLPT_\(year.rawValue)"
+        }
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}

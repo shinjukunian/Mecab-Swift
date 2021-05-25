@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum SchoolYearFilter:String, CharacterFiltering,Codable,CaseIterable,Hashable{
+public enum SchoolYearFilter:String, CharacterFiltering,Codable,CaseIterable,Hashable, Identifiable, CustomStringConvertible{
     
     case elementary1
     case elementary2
@@ -59,6 +59,14 @@ public enum SchoolYearFilter:String, CharacterFiltering,Codable,CaseIterable,Has
         else{
             return nil
         }
+    }
+    
+    public var id: String{
+        return self.rawValue
+    }
+    
+    public var description: String{
+        return self.localizedName
     }
 }
 

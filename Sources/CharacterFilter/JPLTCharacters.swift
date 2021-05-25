@@ -8,7 +8,7 @@
 import Foundation
 
 
-public enum JLPTFilter:String, CharacterFiltering, Equatable, Codable, CaseIterable{
+public enum JLPTFilter:String, CharacterFiltering, Equatable, Codable, CaseIterable, Identifiable, CustomStringConvertible{
     
     case JLTP5
     case JLPT4
@@ -56,6 +56,14 @@ public enum JLPTFilter:String, CharacterFiltering, Equatable, Codable, CaseItera
         else{
             return nil
         }
+    }
+    
+    public var id: String{
+        return self.rawValue
+    }
+    
+    public var description: String{
+        return self.localizedName
     }
 }
 
