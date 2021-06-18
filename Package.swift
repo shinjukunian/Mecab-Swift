@@ -26,6 +26,7 @@ let package = Package(
                           "src/mecab-dict-index.cpp",
                           "src/mecab-system-eval.cpp",
                           "src/mecab-test-gen.cpp",
+                          "Makefile.am",
                           "src/mecab.cpp",
                           "src/make.bat",
                           "src/Makefile.am",

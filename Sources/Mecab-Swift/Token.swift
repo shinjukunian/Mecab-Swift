@@ -10,6 +10,12 @@ import mecab
 
 public enum PartOfSpeech:CustomStringConvertible{
     case verb
+    case particle
+    case noun
+    case adjective
+    case adverb
+    case prefix
+    case symbol
     case unknown
     
     public var description: String{
@@ -18,7 +24,57 @@ public enum PartOfSpeech:CustomStringConvertible{
             return "verb"
         case .unknown:
             return "unknown"
+        case .particle:
+            return "particle"
+        case .noun:
+            return "noun"
+        case .adjective:
+            return "adjective"
+        case .adverb:
+            return "adverb"
+        case .prefix:
+            return "prefix"
+        case .symbol:
+            return "symbol"
         }
+    }
+
+    static public func partOfSpeechForMecabID(posid:UInt16) -> PartOfSpeech {
+        // See https://github.com/buruzaemon/natto/wiki/Node-Parsing-posid
+
+        if posid >= 3 && posid <= 9 {
+            return .symbol
+        }
+
+        if posid >= 10 && posid <= 12 {
+            return .adjective
+        }
+
+        if posid >= 13 && posid <= 24 {
+            return .particle
+        }
+
+        if posid >= 27 && posid <= 30 {
+            return .prefix
+        }
+
+        if posid >= 27 && posid <= 30 {
+            return .prefix
+        }
+
+        if posid >= 31 && posid <= 33 {
+            return .verb
+        }
+
+        if posid >= 34 && posid <= 35 {
+            return .adverb
+        }
+
+        if posid >= 36 && posid <= 67 {
+            return .noun
+        }
+
+        return .unknown
     }
 }
 
@@ -39,10 +95,10 @@ struct Token{
                 else{
             return nil
         }
-       
+
         self.surface=surface
         self.features=features.map({String($0)})
-        self.partOfSpeech = .unknown
+        self.partOfSpeech = PartOfSpeech.partOfSpeechForMecabID(posid: node.posid)
         self.tokenDescription=tokenDescription
     }
     
