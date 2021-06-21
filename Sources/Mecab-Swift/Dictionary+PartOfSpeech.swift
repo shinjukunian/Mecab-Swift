@@ -9,16 +9,16 @@ import Foundation
 
 /**
  A protocol for Part-of-Speech tagging
- The ranges of the PosID are taken from https://github.com/buruzaemon/natto/wiki/Node-Parsing-posid.
+ The ranges of the posID are taken from https://github.com/buruzaemon/natto/wiki/Node-Parsing-posid.
  https://github.com/m4p provided the impetus for this implementation
- An alternative (that potentially allows more granularity) would be to use the POS feature at position 0.
+ An alternative (that potentially allows more granularity) would be to use the POS feature string at position 0.
  */
-protocol PartOfSpeechProviding {
+public protocol PartOfSpeechProviding {
     func partOfSpeech(posID:UInt16)->PartOfSpeech
 }
 
 extension Dictionary.DictionaryType:PartOfSpeechProviding{
-    func partOfSpeech(posID: UInt16) -> PartOfSpeech {
+    public func partOfSpeech(posID: UInt16) -> PartOfSpeech {
         switch self {
         case .ipadic:
             switch posID {
@@ -39,8 +39,6 @@ extension Dictionary.DictionaryType:PartOfSpeechProviding{
             default:
                 return .unknown
             }
-        default:
-            return .unknown
         }
     }
 }

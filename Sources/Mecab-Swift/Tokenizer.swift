@@ -28,10 +28,9 @@ public class Tokenizer{
     }
     
     
-    private let dictionary:Dictionary
+    private let dictionary:DictionaryProviding
     
     fileprivate let _mecab:OpaquePointer!
-    
     
     /**
      The version of the underlying mecab engine.
@@ -40,6 +39,26 @@ public class Tokenizer{
         return String(cString: mecab_version(), encoding: .utf8) ?? ""
     }
     
+    
+    
+    fileprivate let isSystemTokenizer:Bool
+
+    #if canImport(CoreFoundation)
+    fileprivate init(){
+        self.isSystemTokenizer=true
+        self.dictionary=SystemDictionary()
+        _mecab=nil
+    }
+    
+    
+     /*
+     The CoreFoundation CFStringTokenizer
+     **/
+    public static let systemTokenizer:Tokenizer = {
+        return Tokenizer()
+    }()
+    #endif
+    
     /**
      Initializes the Tokenizer.
      - parameters:
@@ -47,28 +66,25 @@ public class Tokenizer{
      - throws:
         * `TokenizerError`: Typically an error that indicates that the dictionary didn't exist or couldn't be opened.
      */
-    public init(dictionary:Dictionary) throws{
+    public init(dictionary:DictionaryProviding) throws{
         self.dictionary=dictionary
-        switch dictionary.type {
-        case .systemTokenizer:
-            _mecab=nil
-        default:
-            let tokenizer=try dictionary.url.withUnsafeFileSystemRepresentation({path->OpaquePointer in
-                guard let path=path,
-                    let dictPath=String(cString: path).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
-                    //MeCab splits the commands by spaces, so we need to escape the path passed inti the function.
-                    //We replace the percent encoded space when opening the dictionary. This is mostly relevant when the dictionary os located inside a folder of which we cannot control the name, i.e. Application Support
-                    else{ throw TokenizerError.initializationFailure("URL Conversion Failed \(dictionary)")}
-                
-                guard let tokenizer=mecab_new2("-d \(dictPath)") else {
-                    let error=String(cString: mecab_strerror(nil), encoding: .utf8) ?? ""
-                    throw TokenizerError.initializationFailure("Opening Dictionary Failed \(dictionary) \(error)")
-                }
-                return tokenizer
-            })
+        self.isSystemTokenizer=false
+        let tokenizer=try dictionary.url.withUnsafeFileSystemRepresentation({path->OpaquePointer in
+            guard let path=path,
+                let dictPath=String(cString: path).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
+                //MeCab splits the commands by spaces, so we need to escape the path passed inti the function.
+                //We replace the percent encoded space when opening the dictionary. This is mostly relevant when the dictionary os located inside a folder of which we cannot control the name, i.e. Application Support
+                else{ throw TokenizerError.initializationFailure("URL Conversion Failed \(dictionary)")}
             
-            _mecab=tokenizer
-        }
+            guard let tokenizer=mecab_new2("-d \(dictPath)") else {
+                let error=String(cString: mecab_strerror(nil), encoding: .utf8) ?? ""
+                throw TokenizerError.initializationFailure("Opening Dictionary Failed \(dictionary) \(error)")
+            }
+            return tokenizer
+        })
+        
+        _mecab=tokenizer
+       
     }
     
     /**
@@ -79,11 +95,10 @@ public class Tokenizer{
      - returns: An array of `Annotation`, a struct that contains the found tokens (the token value, the reading, POS, etc.).
      */
     public func tokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
-        
-        switch dictionary.type {
-        case .systemTokenizer:
+        if self.isSystemTokenizer{
             return self.systemTokenizerTokenize(text: text, transliteration: transliteration)
-        default:
+        }
+        else{
             return mecabTokenize(text: text, transliteration: transliteration)
         }
     }

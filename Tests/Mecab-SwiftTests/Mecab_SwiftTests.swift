@@ -12,8 +12,9 @@ final class Mecab_SwiftTests: XCTestCase {
     }()
     
     var dictionaries:[Dictionary]{
-        return [Dictionary(url: self.dictionaryURL, type: .ipadic), .systemDictionary]
+        return [Dictionary(url: self.dictionaryURL, type: .ipadic)]
     }
+    
     
     func testVersion(){
         let version=Tokenizer.version
@@ -81,8 +82,12 @@ final class Mecab_SwiftTests: XCTestCase {
     
     func testStart() {
         do{
-            for dictionary in self.dictionaries{
-                let tokenizer=try Tokenizer(dictionary: dictionary)
+            let tokenizers=try self.dictionaries.map({
+                try Tokenizer(dictionary: $0)
+            }) + [Tokenizer.systemTokenizer]
+            
+            for tokenizer in tokenizers{
+            
                 XCTAssertNotNil(tokenizer)
                 let string="お電話ください。"
                 let annotations=tokenizer.tokenize(text: string).filter({$0.containsKanji}).map({$0.furiganaAnnotation(for: string)})
@@ -106,8 +111,11 @@ final class Mecab_SwiftTests: XCTestCase {
     
     func testCenter() {
         do{
-            for dictionary in self.dictionaries{
-                let tokenizer=try Tokenizer(dictionary: dictionary)
+            let tokenizers=try self.dictionaries.map({
+                try Tokenizer(dictionary: $0)
+            }) + [Tokenizer.systemTokenizer]
+            
+            for tokenizer in tokenizers{
                 
                 XCTAssertNotNil(tokenizer)
                 let string="打ち上げパーティー"
@@ -133,8 +141,11 @@ final class Mecab_SwiftTests: XCTestCase {
     
     func testTwoRanges() {
         do{
-            for dictionary in self.dictionaries{
-                let tokenizer=try Tokenizer(dictionary: dictionary)
+            let tokenizers=try self.dictionaries.map({
+                try Tokenizer(dictionary: $0)
+            }) + [Tokenizer.systemTokenizer]
+            
+            for tokenizer in tokenizers{
                 XCTAssertNotNil(tokenizer)
                 let string="お知らせです"
                 let annotations=tokenizer.tokenize(text: string).filter({$0.containsKanji}).compactMap({$0.furiganaAnnotation(options: [.kanjiOnly], for: string)})
@@ -157,8 +168,11 @@ final class Mecab_SwiftTests: XCTestCase {
     
     func testTags(){
         do{
-            for dictionary in self.dictionaries{
-                let tokenizer=try Tokenizer(dictionary: dictionary)
+            let tokenizers=try self.dictionaries.map({
+                try Tokenizer(dictionary: $0)
+            }) + [Tokenizer.systemTokenizer]
+            
+            for tokenizer in tokenizers{
                 XCTAssertNotNil(tokenizer)
                 let string =
                  """
@@ -181,8 +195,11 @@ final class Mecab_SwiftTests: XCTestCase {
     
     func testLong(){
         do{
-            for dictionary in self.dictionaries{
-                let tokenizer=try Tokenizer(dictionary: dictionary)
+            let tokenizers=try self.dictionaries.map({
+                try Tokenizer(dictionary: $0)
+            }) + [Tokenizer.systemTokenizer]
+            
+            for tokenizer in tokenizers{
                 XCTAssertNotNil(tokenizer)
                 let string =
                     """
@@ -211,8 +228,11 @@ final class Mecab_SwiftTests: XCTestCase {
         
         
         do{
-            for dictionary in self.dictionaries{
-                let tokenizer=try Tokenizer(dictionary: dictionary)
+            let tokenizers=try self.dictionaries.map({
+                try Tokenizer(dictionary: $0)
+            }) + [Tokenizer.systemTokenizer]
+            
+            for tokenizer in tokenizers{
                 XCTAssertNotNil(tokenizer)
                 let tokens =  tokenizer.furiganaAnnotations(for: string)
                 XCTAssert(tokens.count > 40)
@@ -249,9 +269,12 @@ final class Mecab_SwiftTests: XCTestCase {
     
     func testTransliteration(){
         do{
-            for dictionary in self.dictionaries{
+            let tokenizers=try self.dictionaries.map({
+                try Tokenizer(dictionary: $0)
+            }) + [Tokenizer.systemTokenizer]
+            
+            for tokenizer in tokenizers{
                 let text="世界人口"
-                let tokenizer=try Tokenizer(dictionary: dictionary)
                 let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly])
                 XCTAssertNotNil(furigana.first(where: {$0.reading == "じんこう"}))
                 
@@ -323,20 +346,17 @@ final class Mecab_SwiftTests: XCTestCase {
     
     
     func testSystemTokenizer1(){
-        do{
-            let text="世界人口"
-            let tokenizer=try Tokenizer(dictionary: .systemDictionary)
-            let disallowed=SchoolYearFilter.elementary2.disallowedCharacters
-            let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: disallowed, strict: false)])
-            XCTAssertNil(furigana.first(where: {$0.reading == "じんこう"}))
-            XCTAssertNotNil(furigana.first(where: {$0.reading == "せかい"}))
-            XCTAssert(furigana.count == 1)
+        
+        let text="世界人口"
+        let tokenizer=Tokenizer.systemTokenizer
+        let disallowed=SchoolYearFilter.elementary2.disallowedCharacters
+        let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: disallowed, strict: false)])
+        XCTAssertNil(furigana.first(where: {$0.reading == "じんこう"}))
+        XCTAssertNotNil(furigana.first(where: {$0.reading == "せかい"}))
+        XCTAssert(furigana.count == 1)
             
             
-        }
-        catch let error{
-            XCTFail(error.localizedDescription)
-        }
+       
     }
     
     

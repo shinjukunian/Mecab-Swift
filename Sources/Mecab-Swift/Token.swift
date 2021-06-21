@@ -84,7 +84,11 @@ struct Token{
     var original:String{
         return self.surface
     }
+    
     var dictionaryForm:String{
-        return self.features[6]
+        if self.features.count > self.tokenDescription.dictionaryFormIndex{
+            return self.features[self.tokenDescription.dictionaryFormIndex]
+        }
+        return self.original
     }
 }
