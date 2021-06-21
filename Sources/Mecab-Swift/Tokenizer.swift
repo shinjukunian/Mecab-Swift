@@ -95,7 +95,7 @@ public class Tokenizer{
            while true{
                guard let n = node else {break}
            
-                   if let token=Token(node: n.pointee, tokenDescription: self.dictionary.type){
+                   if let token=Token(node: n.pointee, tokenDescription: self.dictionary){
                        tokens.append(token)
                    }
                

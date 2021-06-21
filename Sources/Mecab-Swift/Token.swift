@@ -11,7 +11,14 @@ import StringTools
 
 public enum PartOfSpeech:CustomStringConvertible{
     case verb
+    case particle
+    case noun
+    case adjective
+    case adverb
+    case prefix
+    case symbol
     case unknown
+
     
     public var description: String{
         switch self {
@@ -19,6 +26,19 @@ public enum PartOfSpeech:CustomStringConvertible{
             return "verb"
         case .unknown:
             return "unknown"
+        case .particle:
+            return "particle"
+        case .noun:
+            return "noun"
+        case .adjective:
+            return "adjective"
+        case .adverb:
+            return "adverb"
+        case .prefix:
+            return "prefix"
+        case .symbol:
+            return "symbol"
+
         }
     }
 }
@@ -31,7 +51,7 @@ struct Token{
     let partOfSpeech:PartOfSpeech
     let tokenDescription:TokenIndexProviding
 
-    init?(node:mecab_node_t, tokenDescription:TokenIndexProviding) {
+    init?(node:mecab_node_t, tokenDescription:TokenIndexProviding & PartOfSpeechProviding) {
         guard let sPTR=node.surface else{return nil}
         let data=Data(bytes: sPTR, count: Int(node.length))
         guard  let surface=String(data: data, encoding: .utf8),
@@ -43,7 +63,7 @@ struct Token{
        
         self.surface=surface
         self.features=features.map({String($0)})
-        self.partOfSpeech = .unknown
+        self.partOfSpeech = tokenDescription.partOfSpeech(posID: node.posid)
         self.tokenDescription=tokenDescription
     }
     
