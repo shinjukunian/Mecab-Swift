@@ -1,6 +1,7 @@
 import mecab
 import Foundation
 import StringTools
+import Dictionary
 
 /**
 A tokenizer /  morphological analyzer for Japanese
@@ -104,7 +105,7 @@ public class Tokenizer{
     }
     
     fileprivate func mecabTokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
-        let tokens=text.withCString({s->[Token] in
+        let tokens=text.precomposedStringWithCanonicalMapping.withCString({s->[Token] in
            var tokens=[Token]()
            var node=mecab_sparse_tonode(self._mecab, s)
            while true{
@@ -124,7 +125,7 @@ public class Tokenizer{
        var searchRange=text.startIndex..<text.endIndex
        for token in tokens{
            let searchString=token.original
-           if searchString.containsKanjiCharacters == false{ // this might be a bit too strict
+           if searchString.isEmpty{
                continue
            }
            if let foundRange=text.range(of: searchString, options: [], range: searchRange, locale: nil){
@@ -154,7 +155,7 @@ public class Tokenizer{
     public func furiganaAnnotations(for text:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->[FuriganaAnnotation]{
         
         return self.tokenize(text: text, transliteration: transliteration)
-            .filter({$0.containsKanji})
+            .filter({$0.base.isEmpty == false})
             .compactMap({$0.furiganaAnnotation(options: options, for: text)})
     }
     

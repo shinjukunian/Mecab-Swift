@@ -1,18 +1,14 @@
 import XCTest
 import Mecab_Swift
 import CharacterFilter
+import IPADic
+import Dictionary
 
 final class Mecab_SwiftTests: XCTestCase {
+        
     
-    //this seems clumsy, but is is important to check whether we can load dictionaries located at URLs that contain spaces
-    lazy var dictionaryURL:URL = {
-        let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
-        let modelURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("ipadic dictionary", isDirectory: true)
-        return modelURL
-    }()
-    
-    var dictionaries:[Dictionary]{
-        return [Dictionary(url: self.dictionaryURL, type: .ipadic)]
+    var dictionaries:[DictionaryProviding]{
+        return [IPADic()]
     }
     
     
@@ -23,7 +19,7 @@ final class Mecab_SwiftTests: XCTestCase {
     
     func testLoading() {
         do{
-            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let tokenizer=try Tokenizer(dictionary: IPADic())
             XCTAssertNotNil(tokenizer)
         }
         catch let error{
@@ -33,7 +29,7 @@ final class Mecab_SwiftTests: XCTestCase {
     
     func testLoadingFails() {
         do{
-            let tokenizer=try Tokenizer(dictionary: Dictionary(url: URL(fileURLWithPath: ""), type: .ipadic))
+            let tokenizer=try Tokenizer(dictionary: IPADic())
             XCTAssertNotNil(tokenizer)
         }
         catch let error{
@@ -43,7 +39,7 @@ final class Mecab_SwiftTests: XCTestCase {
     
     func testLoadingTokenization() {
         do{
-            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let tokenizer=try Tokenizer(dictionary: IPADic())
             XCTAssertNotNil(tokenizer)
             let string="熊が怖いです。"
             let tokens=tokenizer.tokenize(text: string)
@@ -59,7 +55,7 @@ final class Mecab_SwiftTests: XCTestCase {
     
     func testEnd() {
         do{
-            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let tokenizer=try Tokenizer(dictionary: IPADic())
             XCTAssertNotNil(tokenizer)
             let string="熊が怖いです。"
             let annotations=tokenizer.tokenize(text: string).filter({$0.containsKanji}).compactMap({$0.furiganaAnnotation(for: string)})
@@ -234,7 +230,7 @@ final class Mecab_SwiftTests: XCTestCase {
             
             for tokenizer in tokenizers{
                 XCTAssertNotNil(tokenizer)
-                let tokens =  tokenizer.furiganaAnnotations(for: string)
+                let tokens =  tokenizer.furiganaAnnotations(for: string, options: [.kanjiOnly])
                 XCTAssert(tokens.count > 40)
             }
         }
@@ -253,7 +249,7 @@ final class Mecab_SwiftTests: XCTestCase {
             let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("helicobacter").appendingPathExtension("html")
             let htmlText=try String(contentsOf: htmlURL)
             
-            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let tokenizer=try Tokenizer(dictionary: IPADic())
             
             
             let rubyString=tokenizer.addRubyTags(to: htmlText, transliteration: .hiragana, options: [.kanjiOnly])
@@ -293,7 +289,7 @@ final class Mecab_SwiftTests: XCTestCase {
     func testFilter1(){
         do{
             let text="世界人口"
-            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let tokenizer=try Tokenizer(dictionary: IPADic())
             let disallowed=["口","人"]
             let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: Set(disallowed), strict: true)])
             XCTAssertNil(furigana.first(where: {$0.reading == "じんこう"}))
@@ -310,7 +306,7 @@ final class Mecab_SwiftTests: XCTestCase {
     func testFilter2(){
         do{
             let text="世界人口"
-            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let tokenizer=try Tokenizer(dictionary: IPADic())
             let disallowed=["口"]
             let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: Set(disallowed), strict: false)])
             XCTAssertNotNil(furigana.first(where: {$0.reading == "じんこう"}))
@@ -330,7 +326,7 @@ final class Mecab_SwiftTests: XCTestCase {
     func testFilter3(){
         do{
             let text="世界人口"
-            let tokenizer=try Tokenizer(dictionary: Dictionary(url: self.dictionaryURL, type: .ipadic))
+            let tokenizer=try Tokenizer(dictionary: IPADic())
             let disallowed=SchoolYearFilter.elementary2.disallowedCharacters
             let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: disallowed, strict: false)])
             XCTAssertNil(furigana.first(where: {$0.reading == "じんこう"}))

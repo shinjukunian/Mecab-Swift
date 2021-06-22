@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Dictionary
 
 struct SystemDictionary: DictionaryProviding{
     public var url: URL{

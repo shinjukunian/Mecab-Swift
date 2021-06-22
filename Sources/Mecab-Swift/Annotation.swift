@@ -7,6 +7,8 @@
 
 import Foundation
 import StringTools
+import Dictionary
+
 /**
  `Annotation`s encapsulate the information of the `Tokenizer`.
  - base: represents the string value of the token in the original text
@@ -87,6 +89,9 @@ public struct Annotation:Equatable, FuriganaAnnotating{
         }
         
         if options.contains(.kanjiOnly){
+            guard self.containsKanji else{
+                return nil
+            }
             return self.furiganaAnnotation(for: string, kanjiOnly: true)
         }
         else{

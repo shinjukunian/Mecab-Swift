@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Timeline
+   version = "3.0">
+   <TimelineItems>
+      <LoggerValueHistoryTimelineItem
+         documentLocation = "file:///Users/morten/Documents/Xcode/MecabSwift/Playgrounds/Mecab.playground#CharacterRangeLen=16&amp;CharacterRangeLoc=1145&amp;EndingColumnNumber=1&amp;EndingLineNumber=38&amp;StartingColumnNumber=3&amp;StartingLineNumber=36&amp;Timestamp=646036017.296326"
+         selectedRepresentationIndex = "0"
+         shouldTrackSuperviewWidth = "NO">
+      </LoggerValueHistoryTimelineItem>
+      <LoggerValueHistoryTimelineItem
+         documentLocation = "file:///Users/morten/Documents/Xcode/MecabSwift/Playgrounds/Mecab.playground#CharacterRangeLen=18&amp;CharacterRangeLoc=880&amp;EndingColumnNumber=0&amp;EndingLineNumber=31&amp;StartingColumnNumber=3&amp;StartingLineNumber=28&amp;Timestamp=646036017.296398"
+         selectedRepresentationIndex = "0"
+         shouldTrackSuperviewWidth = "NO">
+      </LoggerValueHistoryTimelineItem>
+      <LoggerValueHistoryTimelineItem
+         documentLocation = "file:///Users/morten/Documents/Xcode/MecabSwift/Playgrounds/Mecab.playground#CharacterRangeLen=21&amp;CharacterRangeLoc=798&amp;EndingColumnNumber=0&amp;EndingLineNumber=27&amp;StartingColumnNumber=1&amp;StartingLineNumber=26&amp;Timestamp=646036017.29644"
+         selectedRepresentationIndex = "0"
+         shouldTrackSuperviewWidth = "NO">
+      </LoggerValueHistoryTimelineItem>
+      <LoggerValueHistoryTimelineItem
+         documentLocation = "file:///Users/morten/Documents/Xcode/MecabSwift/Playgrounds/Mecab.playground#CharacterRangeLen=18&amp;CharacterRangeLoc=878&amp;EndingColumnNumber=0&amp;EndingLineNumber=29&amp;StartingColumnNumber=1&amp;StartingLineNumber=28&amp;Timestamp=646036017.296478"
+         selectedRepresentationIndex = "0"
+         shouldTrackSuperviewWidth = "NO">
+      </LoggerValueHistoryTimelineItem>
+      <LoggerValueHistoryTimelineItem
+         documentLocation = "file:///Users/morten/Documents/Xcode/MecabSwift/Playgrounds/Mecab.playground#CharacterRangeLen=16&amp;CharacterRangeLoc=1143&amp;EndingColumnNumber=0&amp;EndingLineNumber=37&amp;StartingColumnNumber=1&amp;StartingLineNumber=36&amp;Timestamp=646036017.296512"
+         selectedRepresentationIndex = "0"
+         shouldTrackSuperviewWidth = "NO">
+      </LoggerValueHistoryTimelineItem>
+   </TimelineItems>
+</Timeline>
