@@ -43,7 +43,7 @@ let ipadicTokens=ipadicTokenizer.tokenize(text: text, transliteration: .hiragana
 //[Base: 蜂蜜, reading: はちみつ, POS: noun, Base: は, reading: は, POS: particle, Base: 熊, reading: くま, POS: noun, Base: の, reading: の, POS: particle, Base: 大, reading: だい, POS: prefix, Base: 好物, reading: こうぶつ, POS: noun, Base: です, reading: です, POS: unknown, Base: 。, reading: 。, POS: symbol]
 ```
 
-We can get all nouns from the sentence
+We can get all nouns in the sentence
 ```swift
 let nouns=ipadicFurigana.filter {$0.partOfSpeech == .noun}.map {$0.base}
 print("The nouns in \"\(text)\" are \(ListFormatter().string(from: nouns) ?? "")")
