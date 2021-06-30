@@ -2,11 +2,12 @@ import UIKit
 import PlaygroundSupport
 import CoreText
 
-import StringTools
 import IPADic
+import StringTools
 import Mecab_Swift
 import Foundation
 import CoreGraphics
+import NaturalLanguage
 
 /*:
  # Welcome to the Mecab Playgorund.
@@ -25,7 +26,13 @@ let ipadicTokenizer = try Tokenizer(dictionary: ipadic)
 
 let ipadicFurigana=ipadicTokenizer.tokenize(text: text, transliteration: .hiragana)
 print(ipadicFurigana)
-let hiraganized = ipadicFurigana.map{$0.reading}.joined()
+
+let nouns=ipadicFurigana.filter {$0.partOfSpeech == .noun}.map {$0.base}
+
+print("The nouns in \"\(text)\" are \(ListFormatter().string(from: nouns) ?? "")")
+
+let hiraganized =
+    ipadicFurigana.map{$0.reading}.joined()
 print(hiraganized)
 
 
@@ -56,17 +63,21 @@ print(furiganaWithOutOkurigana.map{$0.reading}.joined(separator:" "))
 
 let tokenizer = Tokenizer.systemTokenizer
 let annotations = tokenizer.tokenize(text: text)
+print(annotations)
+
 print(annotations.map {$0.reading}.joined())
 
-let furigana=tokenizer.furiganaAnnotations(for: text, transliteration: .hiragana, options: [.kanjiOnly])
+let longerText=text2 + text + "でも鮭もよく食べます。"
+
+let furigana=ipadicTokenizer.furiganaAnnotations(for:longerText, transliteration: .hiragana, options: [.kanjiOnly])
 print(furigana)
 
 /*:We can use the `FuriganaAnnotation`s to produce `CTRubyAnnotation`s that allow Furigana display on Apple platforms
  */
 
-let attributed=NSMutableAttributedString(string: text)
+let attributed=NSMutableAttributedString(string: longerText)
 for furi in furigana{
-    attributed.addAttribute(NSAttributedString.Key(kCTRubyAnnotationAttributeName as String), value: furi.rubyAnnotation(), range: NSRange(furi.range, in: text))
+    attributed.addAttribute(NSAttributedString.Key(kCTRubyAnnotationAttributeName as String), value: furi.rubyAnnotation(), range: NSRange(furi.range, in: longerText))
 }
 
 class FuriganaView: UIView{
@@ -77,7 +88,7 @@ class FuriganaView: UIView{
 
         let frameSetter=CTFramesetterCreateWithAttributedString(furiganaString)
         let range=CFRange(location: 0, length: furiganaString.length)
-        let size=CTFramesetterSuggestFrameSizeWithConstraints(frameSetter, range, [:] as CFDictionary, CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude), nil)
+        let size=CTFramesetterSuggestFrameSizeWithConstraints(frameSetter, range, [:] as CFDictionary, CGSize(width: 100, height: CGFloat.greatestFiniteMagnitude), nil)
         self.layoutedSize=size
         let frame=CTFramesetterCreateFrame(frameSetter, range, CGPath(rect: CGRect(origin: .zero, size: size), transform: nil), [:] as CFDictionary)
         self.textFrame=frame
@@ -111,3 +122,25 @@ class FuriganaView: UIView{
 }
 
 PlaygroundPage.current.liveView=FuriganaView(furiganaString: attributed)
+
+
+/*:Mecab also provides lemmatization of Japanese verbs:
+ */
+
+let text3="でも鮭もよく食べます。"
+let lemmatized = ipadicTokenizer.tokenize(text: text3)
+    .filter {$0.partOfSpeech == .verb}
+    .map {$0.dictionaryForm}
+print(lemmatized)
+
+/*:We can compare this output to `NLTokenizer`
+ */
+let NLtokenizer=NLTokenizer(unit: .word)
+NLtokenizer.string=text3
+let NLtokens=NLtokenizer.tokens(for: text3.startIndex..<text3.endIndex).map{text3[$0]}
+print(NLtokens)
+
+/*:`NLTagger` also provides part-of-speech tagging, unfortunately not for Japanese
+ */
+let avaliableTags=NLTagger.availableTagSchemes(for: .sentence, language: NLLanguage.japanese)
+print(avaliableTags.map({$0.rawValue}))

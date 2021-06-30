@@ -8,7 +8,7 @@
 import Foundation
 
 /**
- The protocol for the dictionary type. One could
+ The protocol for the dictionary type. 
  */
 
 public protocol DictionaryProviding:TokenIndexProviding, PartOfSpeechProviding   {
