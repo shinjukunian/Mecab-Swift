@@ -17,23 +17,22 @@ extension String{
     
     public func romanizedString(method:RomanizationMethod = .hepburn)->String{
         
-        let mutableSelf=CFStringCreateMutableCopy(nil, 0, self as CFString)
+        var transformed:String
         if self.japaneseScriptType.contains(.hiragana){
-            CFStringTransform(mutableSelf, nil, kCFStringTransformLatinHiragana, true)
+            transformed=self.applyingTransform(.latinToHiragana, reverse: true) ?? ""
         }
         else if self.japaneseScriptType.contains(.katakana){
-            CFStringTransform(mutableSelf, nil, kCFStringTransformLatinKatakana, true)
+            transformed=self.applyingTransform(.latinToHiragana, reverse: true) ?? ""
         }
-        let transformed=CFStringCreateCopy(nil, mutableSelf)
+        else{
+            transformed=self
+        }
+
         
         switch method {
         case .waPro:
-            
-            return (transformed as String?) ?? self
-            
+            return transformed
         case .hepburn:
-            guard let t=CFStringCreateCopy(nil, mutableSelf) else{return self}
-            var transformed=t as String
             
             transformed=transformed.replacingOccurrences(of: "ou", with: "ō", options: [.literal], range: transformed.startIndex..<transformed.endIndex)
             transformed=transformed.replacingOccurrences(of: "Ou", with: "Ō", options: [.literal], range: transformed.startIndex..<transformed.endIndex)
@@ -56,8 +55,6 @@ extension String{
 
 public extension String{
     var hiraganaString:String{
-        guard let mutableSelf=CFStringCreateMutableCopy(nil, 0, self as CFString) else{return self}
-        CFStringTransform(mutableSelf, nil, kCFStringTransformHiraganaKatakana, true)
-        return CFStringCreateCopy(nil, mutableSelf) as String
+        return self.applyingTransform(.hiraganaToKatakana, reverse: true) ?? self
     }
 }

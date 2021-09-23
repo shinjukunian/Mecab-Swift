@@ -7,6 +7,7 @@
 
 import Foundation
 
+
 public extension String{
     
     /**
@@ -23,7 +24,7 @@ public extension String{
     }
     /**A convenience function to use the system tokenizer to tokenize strings.
      */
-    func systemTokenizerFuriganaAnnotations()->[SystemTokenizerAnnotation]{
+    func systemTokenizerFuriganaAnnotations(noSubstrings:Bool = true)->[SystemTokenizerAnnotation]{
         let japaneseLocale=Locale(identifier: "ja_JP")
         
         let nsRange=NSRange((self.startIndex..<self.endIndex), in: self)
@@ -34,46 +35,75 @@ public extension String{
         
         var result=CFStringTokenizerAdvanceToNextToken(tokenizer)
         
+        let kanjiCharacterSet=CharacterSet.kanji
+        
         while !result.isEmpty {
             
-            defer {
-                result=CFStringTokenizerAdvanceToNextToken(tokenizer)
-            }
-            
-            let cfRange=CFStringTokenizerGetCurrentTokenRange(tokenizer)
-            guard let range=Range<String.Index>.init(NSRange(location: cfRange.location, length: cfRange.length), in: self) else{continue}
-            let subString=String(self[range])
-            
-            if subString.containsKanjiCharacters{
-                let subTokenizer=CFStringTokenizerCreate(nil, subString as CFString, CFRange(location: 0, length: subString.count), kCFStringTokenizerUnitWordBoundary, japaneseLocale as CFLocale)
-                var subStringResult=CFStringTokenizerAdvanceToNextToken(subTokenizer)
+            let annotation:SystemTokenizerAnnotation? = autoreleasepool{
+                defer {
+                    result=CFStringTokenizerAdvanceToNextToken(tokenizer)
+                }
                 
-                var subTransliterations=[String]()
-                while !subStringResult.isEmpty {
-                    defer {
-                        subStringResult=CFStringTokenizerAdvanceToNextToken(subTokenizer)
-                    }
+                let cfRange=CFStringTokenizerGetCurrentTokenRange(tokenizer)
+                guard let range=Range<String.Index>.init(NSRange(location: cfRange.location, length: cfRange.length), in: self) else{return nil}
+                let subString=String(self[range])
+                
+                let subStringSet=CharacterSet(charactersIn: subString)
+                
+                if kanjiCharacterSet.isDisjoint(with: subStringSet) == false{
                     
-                    let cTypeRef=CFStringTokenizerCopyCurrentTokenAttribute(subTokenizer, kCFStringTokenizerAttributeLatinTranscription)
-                    guard let typeRef=cTypeRef, CFGetTypeID(typeRef) == CFStringGetTypeID() else{continue}
-                    let latinString=typeRef as! CFString
-                    subTransliterations.append(latinString as String)
+                    if noSubstrings{
+                        let cTypeRef=CFStringTokenizerCopyCurrentTokenAttribute(tokenizer, kCFStringTokenizerAttributeLatinTranscription)
+                        guard let typeRef=cTypeRef, CFGetTypeID(typeRef) == CFStringGetTypeID() else {return nil}
+                        let latinString=typeRef as! CFString
+                        guard let katakana=(latinString as String).applyingTransform(.latinToKatakana, reverse: false) else{return nil}
+                        
+                        return SystemTokenizerAnnotation(base: subString, reading: katakana, range: range)
+                       
+                    }
+                    else{
+                        let subTokenizer=CFStringTokenizerCreate(nil, subString as CFString, CFRange(location: 0, length: subString.count), kCFStringTokenizerUnitWordBoundary, japaneseLocale as CFLocale)
+                        var subStringResult=CFStringTokenizerAdvanceToNextToken(subTokenizer)
+                        
+                        var subTransliterations=[String]()
+                        while !subStringResult.isEmpty {
+                            defer {
+                                subStringResult=CFStringTokenizerAdvanceToNextToken(subTokenizer)
+                            }
+                            
+                            let cTypeRef=CFStringTokenizerCopyCurrentTokenAttribute(subTokenizer, kCFStringTokenizerAttributeLatinTranscription)
+                            guard let typeRef=cTypeRef, CFGetTypeID(typeRef) == CFStringGetTypeID() else{continue}
+                            let latinString=typeRef as! CFString
+                            subTransliterations.append(latinString as String)
 
+                        }
+                        
+                        guard let result:String = subTransliterations.joined().applyingTransform(.latinToKatakana, reverse: false),
+                              result.isEmpty == false else{
+                            return nil
+                        }
+                        return SystemTokenizerAnnotation(base: subString, reading: result, range: range)
+                       
+                    }
+                   
+                    
                 }
-                
-                guard let result:String = subTransliterations.joined().applyingTransform(.latinToKatakana, reverse: false),
-                      result.isEmpty == false else{
-                    continue
+                else{
+                     return SystemTokenizerAnnotation(base: subString, reading: subString, range: range)
                 }
-                let annotation=SystemTokenizerAnnotation(base: subString, reading: result, range: range)
-                annotations.append(annotation)
-            }
-            else{
-                let annotation=SystemTokenizerAnnotation(base: subString, reading: subString, range: range)
-                annotations.append(annotation)
             }
 
+            
+            guard let annotation = annotation else {
+                continue
+            }
+
+            annotations.append(annotation)
+            
+            
         }
+            
+            
         
         return annotations
     }

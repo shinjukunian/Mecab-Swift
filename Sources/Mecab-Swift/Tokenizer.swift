@@ -155,7 +155,7 @@ public class Tokenizer{
     public func furiganaAnnotations(for text:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->[FuriganaAnnotation]{
         
         return self.tokenize(text: text, transliteration: transliteration)
-            .filter({$0.base.isEmpty == false})
+            .filter({$0.containsKanji})
             .compactMap({$0.furiganaAnnotation(options: options, for: text)})
     }
     
@@ -173,6 +173,7 @@ public class Tokenizer{
         let furigana=self.furiganaAnnotations(for: htmlText, transliteration: transliteration, options: options)
         var searchRange:Range<String.Index> = htmlText.startIndex ..< htmlText.endIndex
         var outString=htmlText
+        
         for annotation in furigana{
             
             if let tokenRange=outString.range(of: htmlText[annotation.range], options: [], range: searchRange, locale: nil){

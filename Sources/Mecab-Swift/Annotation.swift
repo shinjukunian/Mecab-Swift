@@ -36,18 +36,24 @@ public struct Annotation:Equatable, FuriganaAnnotating{
         self.partOfSpeech = POS
         self.transliteration = transliteration
         
-        switch transliteration {
-        case .katakana:
+        if !base.containsKanjiCharacters{
             self.reading=reading
             self.dictionaryForm=dictionaryForm
-        case .hiragana:
-            self.reading=reading.hiraganaString
-            self.dictionaryForm=dictionaryForm.hiraganaString
-        case .romaji:
-            self.reading=reading.romanizedString(method: .hepburn)
-            self.dictionaryForm=dictionaryForm.romanizedString(method: .hepburn)
         }
-        
+        else{
+            switch transliteration {
+            case .katakana:
+                self.reading=reading
+                self.dictionaryForm=dictionaryForm
+            case .hiragana:
+                self.reading=reading.hiraganaString
+                self.dictionaryForm=dictionaryForm.hiraganaString
+            case .romaji:
+                self.reading=reading.romanizedString(method: .hepburn)
+                self.dictionaryForm=dictionaryForm.romanizedString(method: .hepburn)
+            }
+        }
+ 
     }
     
     /**
