@@ -47,7 +47,7 @@ extension String{
                 
                 if result.contains(.isCJWordMask), subString.containsKanjiCharacters{
                     if !disallowedCharacters.isEmpty{
-                        guard disallowedCharacters.isDisjoint(with: Set(subString.kanjiCharacters)) == true else{
+                        guard disallowedCharacters.isSuperset(of: Set(subString.kanjiCharacters)) == false else{
                             return subString
                         }
                     }
