@@ -22,7 +22,7 @@ extension String{
             transformed=self.applyingTransform(.latinToHiragana, reverse: true) ?? ""
         }
         else if self.japaneseScriptType.contains(.katakana){
-            transformed=self.applyingTransform(.latinToHiragana, reverse: true) ?? ""
+            transformed=self.applyingTransform(.latinToKatakana, reverse: true) ?? ""
         }
         else{
             transformed=self

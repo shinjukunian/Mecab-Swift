@@ -94,7 +94,7 @@ public struct Annotation:Equatable, FuriganaAnnotating{
             }
         }
         
-        if options.contains(.kanjiOnly){
+        if options.contains(.kanjiOnly), self.transliteration != .romaji{
             guard self.containsKanji else{
                 return nil
             }
