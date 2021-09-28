@@ -128,4 +128,27 @@ final class StringToolsTests: XCTestCase {
 """
         
     }
+    
+    
+    
+    func testHTML(){
+        
+        do{
+            let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
+            let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("helicobacter").appendingPathExtension("html")
+            let htmlText=try String(contentsOf: htmlURL)
+            
+            
+            
+            
+            let rubyString=htmlText.rubyTaggedString(useRomaji: false, kanjiOnly: true, disallowedCharacters: Set<String>())
+            XCTAssertFalse(rubyString.isEmpty)
+            XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
+            
+            
+        }
+        catch let error{
+            XCTFail(error.localizedDescription)
+        }
+    }
 }

@@ -29,9 +29,9 @@ public class Tokenizer{
     }
     
     
-    private let dictionary:DictionaryProviding
+    internal let dictionary:DictionaryProviding
     
-    fileprivate let _mecab:OpaquePointer!
+    internal let _mecab:OpaquePointer!
     
     /**
      The version of the underlying mecab engine.
@@ -169,6 +169,7 @@ public class Tokenizer{
           - options: Options to pass to the tokenizer
        - returns: A text with `<ruby>` annotations.
        */
+    @available(*, deprecated, message: "Use the streaming function rubyTaggedString instead")
     public func addRubyTags(to htmlText:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->String{
         let furigana=self.furiganaAnnotations(for: htmlText, transliteration: transliteration, options: options)
         var searchRange:Range<String.Index> = htmlText.startIndex ..< htmlText.endIndex
@@ -185,6 +186,36 @@ public class Tokenizer{
         }
         return outString
     
+    }
+    
+    /**
+       A convenience function to add `<ruby>` tags to  text.
+        
+        `<ruby>` tags are added to all tokens that contain Kanji characters, regardless of whether they are on specific parts of an HTML document or not. This can potentially disrupt scripts or navigation.
+       - parameters:
+          - htmlText: A `string` that contains the text to tokenize.
+          - transliteration: A `Transliteration` method. The text content of found tokens will be displayed using this.
+          - options: Options to pass to the tokenizer
+       - returns: A text with `<ruby>` annotations.
+       */
+    
+    public func rubyTaggedString(source htmlString:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->String{
+        
+        var characters=Set<String>()
+        var disallowedStrict = false
+        for case let Annotation.AnnotationOption.filter(disallowed, strict) in options{
+            characters=characters.union(disallowed)
+            disallowedStrict=strict
+        }
+        
+        if self.isSystemTokenizer{
+           
+            return htmlString.rubyTaggedString(useRomaji: transliteration == .romaji, kanjiOnly: options.contains(.kanjiOnly), disallowedCharacters: characters, strict: disallowedStrict)
+        }
+        else{
+            return self.mecab_rubyTaggedString(source: htmlString, transliteration: transliteration, kanjiOnly: options.contains(.kanjiOnly), disallowedCharacters: characters, strict: disallowedStrict)
+        }
+        
     }
     
     deinit {

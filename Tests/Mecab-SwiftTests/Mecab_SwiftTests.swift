@@ -263,6 +263,66 @@ final class Mecab_SwiftTests: XCTestCase {
         }
     }
     
+    
+    
+    func testPerformanceClassic(){
+        
+        let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
+        let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("helicobacter").appendingPathExtension("html")
+        
+        measure {
+            do{
+                let htmlText=try String(contentsOf: htmlURL)
+                let tokenizer=Tokenizer.systemTokenizer
+                
+                
+                let rubyString=tokenizer.addRubyTags(to: htmlText, transliteration: .hiragana, options: [.kanjiOnly])
+                XCTAssertFalse(rubyString.isEmpty)
+                XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
+            }
+            catch let error{
+                XCTFail(error.localizedDescription)
+            }
+        }
+        
+        
+    }
+    
+    func testPerformanceStreamingMecab(){
+        let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
+        let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("イギリス").appendingPathExtension("html")
+        measure {
+            do{
+                let htmlText=try String(contentsOf: htmlURL)
+                let tokenizer=try Tokenizer(dictionary: IPADic())
+                let rubyString=tokenizer.rubyTaggedString(source: htmlText, transliteration: .romaji, options: [.kanjiOnly])
+                XCTAssertFalse(rubyString.isEmpty)
+                XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
+            }
+            catch let error{
+                XCTFail(error.localizedDescription)
+            }
+        }
+    }
+    
+    
+    func testPerformanceStreamingSystem(){
+        let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
+        let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("イギリス").appendingPathExtension("html")
+        measure {
+            do{
+                let htmlText=try String(contentsOf: htmlURL)
+                let tokenizer=Tokenizer.systemTokenizer
+                let rubyString=tokenizer.rubyTaggedString(source: htmlText, transliteration: .romaji, options: [.kanjiOnly])
+                XCTAssertFalse(rubyString.isEmpty)
+                XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
+            }
+            catch let error{
+                XCTFail(error.localizedDescription)
+            }
+        }
+    }
+    
     func testTransliteration(){
         do{
             let tokenizers=try self.dictionaries.map({

@@ -49,7 +49,8 @@ let package = Package(
         
         .testTarget(
             name: "StringToolsTests",
-            dependencies: ["StringTools"]),
+            dependencies: ["StringTools"],
+            resources: [.copy("Resources/helicobacter.html")]),
         
         .target(name: "mecab", dependencies: [],
                 path: "Sources/mecab/mecab",

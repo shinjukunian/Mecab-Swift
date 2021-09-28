@@ -21,7 +21,7 @@ extension String{
      - returns:
         A `<ruby>` annotated string suitable for display in a browser.
      */
-    public func rubyTaggedString(useRomaji:Bool = false, kanjiOnly:Bool = true, disallowedCharacters:Set<String> = Set<String>())->String{
+    public func rubyTaggedString(useRomaji:Bool = false, kanjiOnly:Bool = true, disallowedCharacters:Set<String> = Set<String>(), strict:Bool = false)->String{
         
         var outString=""
         
@@ -47,9 +47,17 @@ extension String{
                 
                 if result.contains(.isCJWordMask), subString.containsKanjiCharacters{
                     if !disallowedCharacters.isEmpty{
-                        guard disallowedCharacters.isSuperset(of: Set(subString.kanjiCharacters)) == false else{
-                            return subString
+                        if strict{
+                            guard disallowedCharacters.isDisjoint(with: Set(subString.kanjiCharacters)) == false else{
+                                return subString
+                            }
                         }
+                        else{
+                            guard disallowedCharacters.isSuperset(of: Set(subString.kanjiCharacters)) == false else{
+                                return subString
+                            }
+                        }
+                        
                     }
                     
                     
@@ -90,7 +98,7 @@ extension String{
     }
     
     
-    func cleanupFurigana(base:String)->String{
+    public func cleanupFurigana(base:String)->String{
         let hiraganaRanges=base.hiraganaRanges
         var transliteration=self
         
