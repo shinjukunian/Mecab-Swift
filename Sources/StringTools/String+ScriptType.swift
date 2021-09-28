@@ -40,6 +40,14 @@ public extension String{
     }
 
     @inlinable var containsKanjiCharacters:Bool{
+        return self.unicodeScalars.contains(where: {scalar in
+            CharacterSet.kanjiRange.contains(scalar)
+        })
+    }
+    
+    
+    //This version is a lot slower than the raw comparison above
+    @inlinable var containsKanjiCharacters_old:Bool{
         let containedCharacters=CharacterSet.init(charactersIn: self)
         return !containedCharacters.intersection(CharacterSet.kanji).isEmpty
     }
@@ -77,6 +85,10 @@ public extension String{
 
 public extension CharacterSet{
     
+    static let unicodeKanjiStart=Unicode.Scalar(0x4e00)!
+    static let unicodeKanjiEnd=Unicode.Scalar(0x9fbf)!
+    static let kanjiRange=Unicode.Scalar(0x4e00)!...Unicode.Scalar(0x9fbf)!
+    
     static var hiragana:CharacterSet{
         let start=Unicode.Scalar(0x3040)
         let end=Unicode.Scalar(0x309f)
@@ -91,9 +103,7 @@ public extension CharacterSet{
     
     
     static var kanji:CharacterSet{
-        let start=Unicode.Scalar(0x4e00)
-        let end=Unicode.Scalar(0x9fbf)
-        return CharacterSet.init(charactersIn: start!...end!)
+        return CharacterSet.init(charactersIn: kanjiRange)
     }
 }
 
