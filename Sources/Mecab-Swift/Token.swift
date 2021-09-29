@@ -16,17 +16,21 @@ struct Token{
     let features:[String]
     let partOfSpeech:PartOfSpeech
     let tokenDescription:TokenIndexProviding
-
+    let length:Int
+    let lengthIncludingWhiteSpace:Int
+    
     init?(node:mecab_node_t, tokenDescription:TokenIndexProviding & PartOfSpeechProviding) {
         guard let sPTR=node.surface else{return nil}
         let data=Data(bytes: sPTR, count: Int(node.length))
+        
         guard  let surface=String(data: data, encoding: .utf8),
-                let features=String(cString: node.feature, encoding: .utf8)?.split(separator: ","),
-                features.count > 0
+               let features=String(cString: node.feature, encoding: .utf8)?.split(separator: ","),
+               features.count > 0
                 else{
             return nil
         }
-       
+        self.length=Int(node.length)
+        self.lengthIncludingWhiteSpace=Int(node.rlength)
         self.surface=surface
         self.features=features.map({String($0)})
         self.partOfSpeech = tokenDescription.partOfSpeech(posID: node.posid)

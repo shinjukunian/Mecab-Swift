@@ -172,21 +172,27 @@ final class Mecab_SwiftTests: XCTestCase {
                 XCTAssertNotNil(tokenizer)
                 let string =
                  """
-     JR東日本によると、2日午後7時15分ごろ、JR新宿駅で、線路の上にいた人が、入線した山手線と衝突した。女性とみられ、容体は不明。現場に白杖が落ちており、警視庁などが調べている
+     JR東日本によると、2日午後7時15分ごろ、JR新宿駅で、線路の上にいた人が、入線した山手線と衝突した。
+     女性とみられ、容体は不明。
+     
+        現場に白杖が落ちており、警視庁などが調べている
      """
-                 
-                 let rubyString=tokenizer.addRubyTags(to: string, transliteration: .hiragana, options: [.kanjiOnly])
-                 XCTAssertFalse(rubyString.isEmpty)
-                 XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
+                
+//                let rubyString=tokenizer.addRubyTags(to: string, transliteration: .hiragana, options: [.kanjiOnly])
+                let rubyString=tokenizer.rubyTaggedString(source: string, transliteration: .hiragana, options: [.kanjiOnly])
+                
+                XCTAssertFalse(rubyString.isEmpty)
+                XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
+                
             }
-           
-           
-           
-       }
-       catch let error{
-           XCTFail(error.localizedDescription)
-       }
-
+            
+            
+            
+        }
+        catch let error{
+            XCTFail(error.localizedDescription)
+        }
+        
     }
     
     func testLong(){
@@ -295,7 +301,7 @@ final class Mecab_SwiftTests: XCTestCase {
             do{
                 let htmlText=try String(contentsOf: htmlURL)
                 let tokenizer=try Tokenizer(dictionary: IPADic())
-                let rubyString=tokenizer.rubyTaggedString(source: htmlText, transliteration: .romaji, options: [.kanjiOnly])
+                let rubyString=tokenizer.rubyTaggedString(source: htmlText, transliteration: .hiragana, options: [.kanjiOnly])
                 XCTAssertFalse(rubyString.isEmpty)
                 XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
             }

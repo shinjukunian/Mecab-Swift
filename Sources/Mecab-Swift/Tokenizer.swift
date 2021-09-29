@@ -19,11 +19,14 @@ public class Tokenizer{
 
     public enum TokenizerError:Error{
         case initializationFailure(String)
+        case parsingError(String)
         
         public var localizedDescription: String{
             switch self {
             case .initializationFailure(let error):
                 return error
+            case .parsingError(let error):
+                return "Parising Error \(error)"
             }
         }
     }

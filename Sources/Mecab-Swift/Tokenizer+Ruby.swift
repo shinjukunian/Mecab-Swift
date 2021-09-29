@@ -16,61 +16,74 @@ extension Tokenizer{
         
         
         func parse(subString:String)->String{
+            
+            var pos=subString.startIndex
+            
             return subString.withCString({s->String in
                 var retVal=""
+                
                 var node=mecab_sparse_tonode(self._mecab, s)
+                
                 while true{
-                    
-                    
-                    guard let n = node else {break}
+
+                    guard let n = node else {
+                        break
+                    }
                     
                     defer{
                         node = UnsafePointer(n.pointee.next)
                     }
                     
                     
-                    if let token=Token(node: n.pointee, tokenDescription: self.dictionary){
-                        if token.original.containsKanjiCharacters{
-                            
-                            if disallowedCharacters.isEmpty == false {
-                                if strict{
-                                    guard disallowedCharacters.isDisjoint(with: Set(token.original.kanjiCharacters)) == false else{
-                                        retVal.append(token.original)
-                                        continue
-                                    }
-                                }
-                                else{
-                                    guard disallowedCharacters.isSuperset(of: Set(token.original.kanjiCharacters)) == false else{
-                                        retVal.append(token.original)
-                                        continue
-                                    }
+                    guard let token=Token(node: n.pointee, tokenDescription: self.dictionary) else{
+                        continue
+                    }
+                    
+                    let endPos=subString.utf8.index(pos, offsetBy: token.lengthIncludingWhiteSpace)
+                    let original=String(subString[pos..<endPos])
+                    pos=endPos
+                    
+                    if original.containsKanjiCharacters{
+                        
+                        if disallowedCharacters.isEmpty == false {
+                            if strict{
+                                guard disallowedCharacters.isDisjoint(with: Set(token.original.kanjiCharacters)) == false else{
+                                    retVal.append(original)
+                                    continue
                                 }
                             }
-                            
-                            var reading:String
-                            switch transliteration {
-                            case .hiragana where kanjiOnly == true:
-                                reading=token.reading.hiraganaString.cleanupFurigana(base: token.original)
-                            case .hiragana,
-                                    .hiragana where kanjiOnly == false:
-                                reading=token.reading.hiraganaString
-                            case .katakana:
-                                reading=token.reading
-                            case .romaji:
-                                reading=token.reading.romanizedString()
+                            else{
+                                guard disallowedCharacters.isSuperset(of: Set(token.original.kanjiCharacters)) == false else{
+                                    retVal.append(original)
+                                    continue
+                                }
                             }
-                            
-                            
-                            
-                            
-                            let htmlRuby="<ruby>\(token.original)<rt>\(reading)</rt></ruby>"
-                            retVal.append(htmlRuby)
-                        }
-                        else{
-                            retVal.append(token.original)
                         }
                         
+                        var reading:String
+                        switch transliteration {
+                        case .hiragana where kanjiOnly == true:
+                            reading=token.reading.hiraganaString.cleanupFurigana(base: original)
+                        case .hiragana,
+                                .hiragana where kanjiOnly == false:
+                            reading=token.reading.hiraganaString
+                        case .katakana:
+                            reading=token.reading
+                        case .romaji:
+                            reading=token.reading.romanizedString()
+                        }
+                        
+                        
+                        
+                        
+                        let htmlRuby="<ruby>\(original)<rt>\(reading)</rt></ruby>"
+                        retVal.append(htmlRuby)
                     }
+                    else{
+                        retVal.append(original)
+                    }
+                        
+                    
                     
                 }
                 return retVal
@@ -80,13 +93,14 @@ extension Tokenizer{
         
         let sliceLength=100_000 // mecab has a size limit
         let strides=stride(from: 0, to: source.count, by: sliceLength)
+        
         var returnString=""
         returnString.reserveCapacity(source.count)
         
         for start in strides{
             let startIDX=source.index(source.startIndex, offsetBy: start)
             let endIDX=source.index(source.startIndex, offsetBy: start + sliceLength, limitedBy: source.endIndex) ?? source.endIndex
-            let subString=String(source[startIDX..<endIDX])
+            let subString=String(source[startIDX..<endIDX]).precomposedStringWithCanonicalMapping
             let annotated=parse(subString: subString)
             returnString.append(annotated)
         }
