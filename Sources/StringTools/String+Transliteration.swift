@@ -46,7 +46,6 @@ extension String{
             transformed=transformed.replacingOccurrences(of: "Ii", with: "Ī", options: [.literal], range: transformed.startIndex..<transformed.endIndex)
             transformed=transformed.replacingOccurrences(of: "uu", with: "ū", options: [.literal], range: transformed.startIndex..<transformed.endIndex)
             transformed=transformed.replacingOccurrences(of: "Uu", with: "Ū", options: [.literal], range: transformed.startIndex..<transformed.endIndex)
-
             return transformed
         }
         

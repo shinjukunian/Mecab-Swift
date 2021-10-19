@@ -21,7 +21,7 @@ extension String{
      - returns:
         A `<ruby>` annotated string suitable for display in a browser.
      */
-    public func rubyTaggedString(useRomaji:Bool = false, kanjiOnly:Bool = true, disallowedCharacters:Set<String> = Set<String>(), strict:Bool = false)->String{
+    public func rubyTaggedString(useRomaji:Bool = false, kanjiOnly:Bool = true, disallowedCharacters:Set<String> = Set<String>(), strict:Bool = false, transliterateAll:Bool)->String{
         
         var outString=""
         
@@ -45,44 +45,54 @@ extension String{
                 guard let range=Range<String.Index>.init(NSRange(location: cfRange.location, length: cfRange.length), in: self) else{return ""}
                 let subString=String(self[range])
                 
-                if result.contains(.isCJWordMask), subString.containsKanjiCharacters{
-                    if !disallowedCharacters.isEmpty{
-                        if strict{
-                            guard disallowedCharacters.isDisjoint(with: Set(subString.kanjiCharacters)) == false else{
-                                return subString
+                if result.contains(.isCJWordMask){
+                    if transliterateAll && useRomaji{
+                        let cTypeRef=CFStringTokenizerCopyCurrentTokenAttribute(tokenizer, kCFStringTokenizerAttributeLatinTranscription)
+                        guard let typeRef=cTypeRef, CFGetTypeID(typeRef) == CFStringGetTypeID() else {return subString}
+                        let furigana:String = (typeRef as! CFString) as String
+                        let htmlRuby="<ruby>\(subString)<rt>\(furigana)</rt></ruby>"
+                        return htmlRuby
+                    }
+                    else if subString.containsKanjiCharacters{
+                        if !disallowedCharacters.isEmpty{
+                            if strict{
+                                guard disallowedCharacters.isDisjoint(with: Set(subString.kanjiCharacters)) == false else{
+                                    return subString
+                                }
                             }
+                            else{
+                                guard disallowedCharacters.isSuperset(of: Set(subString.kanjiCharacters)) == false else{
+                                    return subString
+                                }
+                            }
+                            
                         }
-                        else{
-                            guard disallowedCharacters.isSuperset(of: Set(subString.kanjiCharacters)) == false else{
-                                return subString
-                            }
+
+                        let cTypeRef=CFStringTokenizerCopyCurrentTokenAttribute(tokenizer, kCFStringTokenizerAttributeLatinTranscription)
+                        guard let typeRef=cTypeRef, CFGetTypeID(typeRef) == CFStringGetTypeID() else {return subString}
+                        let furigana:String?
+                        
+                        if useRomaji{
+                            furigana = (typeRef as! CFString) as String
+                        }
+                        else {
+                            furigana=((typeRef as! CFString) as String).applyingTransform(.latinToHiragana, reverse: false)
                         }
                         
+                        guard var furigana = furigana else {
+                            return subString
+                        }
+                        if kanjiOnly == true, useRomaji==false{
+                            #warning("this could be solved more elegnatly")
+                            furigana=furigana.cleanupFurigana(base: subString)
+                        }
+                        
+                        let htmlRuby="<ruby>\(subString)<rt>\(furigana)</rt></ruby>"
+                        return htmlRuby
                     }
-                    
-                    
-                    let cTypeRef=CFStringTokenizerCopyCurrentTokenAttribute(tokenizer, kCFStringTokenizerAttributeLatinTranscription)
-                    guard let typeRef=cTypeRef, CFGetTypeID(typeRef) == CFStringGetTypeID() else {return subString}
-                    let furigana:String?
-                    
-                    if useRomaji{
-                        furigana = (typeRef as! CFString) as String
-                    }
-                    else {
-                        furigana=((typeRef as! CFString) as String).applyingTransform(.latinToHiragana, reverse: false)
-                    }
-                    
-                    guard var furigana = furigana else {
+                    else{
                         return subString
                     }
-                    if kanjiOnly == true, useRomaji==false{
-                        #warning("this could be solved more elegnatly")
-                        furigana=furigana.cleanupFurigana(base: subString)
-                    }
-                    
-                    let htmlRuby="<ruby>\(subString)<rt>\(furigana)</rt></ruby>"
-                    return htmlRuby
-
                 }
                 else{
                     return subString

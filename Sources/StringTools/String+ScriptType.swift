@@ -26,13 +26,13 @@ public extension String{
         var type = ScriptType.noJapaneseScript
         for character in self{
             guard let firstScalar=character.unicodeScalars.first else{continue}
-            if CharacterSet.kanji.contains(firstScalar){
+            if CharacterSet.kanjiRange.contains(firstScalar){
                 type.insert(.kanji)
             }
-            else if CharacterSet.hiragana.contains(firstScalar){
+            else if CharacterSet.hiraganaRange.contains(firstScalar){
                 type.insert(.hiragana)
             }
-            else if CharacterSet.katakana.contains(firstScalar){
+            else if CharacterSet.katakanaRange.contains(firstScalar){
                 type.insert(.katakana)
             }
         }
@@ -45,6 +45,17 @@ public extension String{
         })
     }
     
+    @inlinable var containsJapaneseScript:Bool{
+        for character in self{
+            guard let firstScalar=character.unicodeScalars.first else{continue}
+            if  CharacterSet.kanjiRange.contains(firstScalar) ||
+                CharacterSet.hiraganaRange.contains(firstScalar) ||
+                CharacterSet.katakanaRange.contains(firstScalar){
+                return true
+            }
+        }
+        return false
+    }
     
     //This version is a lot slower than the raw comparison above
     @inlinable var containsKanjiCharacters_old:Bool{
@@ -88,19 +99,16 @@ public extension CharacterSet{
     static let unicodeKanjiStart=Unicode.Scalar(0x4e00)!
     static let unicodeKanjiEnd=Unicode.Scalar(0x9fbf)!
     static let kanjiRange=Unicode.Scalar(0x4e00)!...Unicode.Scalar(0x9fbf)!
+    static let hiraganaRange=Unicode.Scalar(0x3040)!...Unicode.Scalar(0x309f)!
+    static let katakanaRange=Unicode.Scalar(0x30a0)!...Unicode.Scalar(0x30ff)!
     
     static var hiragana:CharacterSet{
-        let start=Unicode.Scalar(0x3040)
-        let end=Unicode.Scalar(0x309f)
-        return CharacterSet.init(charactersIn: start!...end!)
+        return CharacterSet.init(charactersIn: hiraganaRange)
     }
     
     static var katakana:CharacterSet{
-        let start=Unicode.Scalar(0x30a0)
-        let end=Unicode.Scalar(0x30ff)
-        return CharacterSet.init(charactersIn: start!...end!)
+        return CharacterSet.init(charactersIn: katakanaRange)
     }
-    
     
     static var kanji:CharacterSet{
         return CharacterSet.init(charactersIn: kanjiRange)

@@ -311,6 +311,23 @@ final class Mecab_SwiftTests: XCTestCase {
         }
     }
     
+    func testPerformanceStreamingMecab_transliterateAll(){
+        let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
+        let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("イギリス").appendingPathExtension("html")
+        measure {
+            do{
+                let htmlText=try String(contentsOf: htmlURL)
+                let tokenizer=try Tokenizer(dictionary: IPADic())
+                let rubyString=tokenizer.rubyTaggedString(source: htmlText, transliteration: .romaji, options: [.kanjiOnly], transliterateAll: true)
+                XCTAssertFalse(rubyString.isEmpty)
+                XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
+            }
+            catch let error{
+                XCTFail(error.localizedDescription)
+            }
+        }
+    }
+    
     
     func testPerformanceStreamingSystem(){
         let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
@@ -327,6 +344,42 @@ final class Mecab_SwiftTests: XCTestCase {
                 XCTFail(error.localizedDescription)
             }
         }
+    }
+    
+    
+    func testPerformanceStreamingSystem_transliterateAll(){
+        let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
+        let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("イギリス").appendingPathExtension("html")
+        measure {
+            do{
+                let htmlText=try String(contentsOf: htmlURL)
+                let tokenizer=Tokenizer.systemTokenizer
+                let rubyString=tokenizer.rubyTaggedString(source: htmlText, transliteration: .romaji, options: [.kanjiOnly], transliterateAll: true)
+                XCTAssertFalse(rubyString.isEmpty)
+                XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
+            }
+            catch let error{
+                XCTFail(error.localizedDescription)
+            }
+        }
+        
+    }
+    
+    
+    func testTransliterateAll(){
+        let text="熊のプーさんの大好物はハチミツです。熊のプーさんは英語でWinni-The-Poohと呼ぶんです。"
+        let tokenizer=Tokenizer.systemTokenizer
+        let rubyString=tokenizer.rubyTaggedString(source: text, transliteration: .romaji, options: [], transliterateAll: true)
+        XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
+        let mecab=try! Tokenizer(dictionary: IPADic())
+        let rubyString_mecab=mecab.rubyTaggedString(source: text, transliteration: .romaji, options: [], transliterateAll: true)
+        XCTAssertFalse(rubyString_mecab.range(of: "<ruby>")?.isEmpty ?? true)
+        
+        let text2="ぼくたちがとてもちいさかったころ"
+        let ruby2=tokenizer.rubyTaggedString(source: text2, transliteration: .romaji, options: [], transliterateAll: true)
+        XCTAssertFalse(ruby2.range(of: "<ruby>")?.isEmpty ?? true)
+        let rubyString_mecab2=mecab.rubyTaggedString(source: text2, transliteration: .romaji, options: [], transliterateAll: true)
+        XCTAssertFalse(rubyString_mecab2.range(of: "<ruby>")?.isEmpty ?? true)
     }
     
     func testTransliteration(){

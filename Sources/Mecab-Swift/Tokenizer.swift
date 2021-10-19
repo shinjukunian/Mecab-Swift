@@ -202,7 +202,7 @@ public class Tokenizer{
        - returns: A text with `<ruby>` annotations.
        */
     
-    public func rubyTaggedString(source htmlString:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->String{
+    public func rubyTaggedString(source htmlString:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly], transliterateAll:Bool = false)->String{
         
         var characters=Set<String>()
         var disallowedStrict = false
@@ -213,10 +213,10 @@ public class Tokenizer{
         
         if self.isSystemTokenizer{
            
-            return htmlString.rubyTaggedString(useRomaji: transliteration == .romaji, kanjiOnly: options.contains(.kanjiOnly), disallowedCharacters: characters, strict: disallowedStrict)
+            return htmlString.rubyTaggedString(useRomaji: transliteration == .romaji, kanjiOnly: options.contains(.kanjiOnly), disallowedCharacters: characters, strict: disallowedStrict, transliterateAll: transliterateAll)
         }
         else{
-            return self.mecab_rubyTaggedString(source: htmlString, transliteration: transliteration, kanjiOnly: options.contains(.kanjiOnly), disallowedCharacters: characters, strict: disallowedStrict)
+            return self.mecab_rubyTaggedString(source: htmlString, transliteration: transliteration, kanjiOnly: options.contains(.kanjiOnly), disallowedCharacters: characters, strict: disallowedStrict, transliterateAll: transliterateAll)
         }
         
     }

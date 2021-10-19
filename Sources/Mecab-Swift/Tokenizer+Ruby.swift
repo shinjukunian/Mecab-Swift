@@ -10,9 +10,7 @@ import mecab
 
 extension Tokenizer{
     
-    
-    
-    func mecab_rubyTaggedString(source:String, transliteration:Transliteration, kanjiOnly:Bool = true, disallowedCharacters:Set<String> = Set<String>(), strict:Bool = false)->String{
+    func mecab_rubyTaggedString(source:String, transliteration:Transliteration, kanjiOnly:Bool = true, disallowedCharacters:Set<String> = Set<String>(), strict:Bool = false, transliterateAll:Bool = false)->String{
         
         
         func parse(subString:String)->String{
@@ -25,7 +23,7 @@ extension Tokenizer{
                 var node=mecab_sparse_tonode(self._mecab, s)
                 
                 while true{
-
+                    
                     guard let n = node else {
                         break
                     }
@@ -43,7 +41,14 @@ extension Tokenizer{
                     let original=String(subString[pos..<endPos])
                     pos=endPos
                     
-                    if original.containsKanjiCharacters{
+                    if  transliterateAll,
+                        transliteration == .romaji,
+                        token.surface.containsJapaneseScript{
+                        let reading=token.reading.romanizedString()
+                        let htmlRuby="<ruby>\(original)<rt>\(reading)</rt></ruby>"
+                        retVal.append(htmlRuby)
+                    }
+                    else if original.containsKanjiCharacters{
                         
                         if disallowedCharacters.isEmpty == false {
                             if strict{
@@ -72,18 +77,13 @@ extension Tokenizer{
                         case .romaji:
                             reading=token.reading.romanizedString()
                         }
-                        
-                        
-                        
-                        
+
                         let htmlRuby="<ruby>\(original)<rt>\(reading)</rt></ruby>"
                         retVal.append(htmlRuby)
                     }
                     else{
                         retVal.append(original)
                     }
-                        
-                    
                     
                 }
                 return retVal
