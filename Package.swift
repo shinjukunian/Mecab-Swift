@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -41,7 +41,8 @@ let package = Package(
         .target(name: "CharacterFilter"),
         .target(name: "StringTools"),
         
-        .target(name: "IPADic", dependencies: ["Dictionary"], resources: [.copy("ipadic dictionary")]),
+        .target(name: "IPADic", dependencies: ["IPADicDefinition"], resources: [.copy("ipadic dictionary")]),
+        .target(name: "IPADicDefinition", dependencies: ["Dictionary"]),
         
         .testTarget(
             name: "Mecab-SwiftTests",

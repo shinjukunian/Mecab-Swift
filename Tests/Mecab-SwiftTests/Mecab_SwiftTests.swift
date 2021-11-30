@@ -3,6 +3,7 @@ import Mecab_Swift
 import CharacterFilter
 import IPADic
 import Dictionary
+import IPADicDefinition
 
 final class Mecab_SwiftTests: XCTestCase {
         

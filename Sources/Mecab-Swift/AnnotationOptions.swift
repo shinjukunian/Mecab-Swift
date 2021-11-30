@@ -25,9 +25,8 @@ extension Annotation{
         
         /**
          Filter tokens - for certain characters no tokens are returned.
-
-         -  `disallowedCharacters:` a set of Kanji characters for which no tokens are returned.
-         -  `strict`: determines whether tokens are filtered if only some characters or all characters in the token are in the set of disallowed characters
+        -  `disallowedCharacters:` a set of Kanji characters for which no tokens are returned.
+        -  `strict`: determines whether tokens are filtered if only some characters or all characters in the token are in the set of disallowed characters
 
          */
         case filter(disallowedCharacters:Set<String>, strict:Bool)

@@ -66,9 +66,9 @@ public class Tokenizer{
     /**
      Initializes the Tokenizer.
      - parameters:
-        - dictionary:  A Dictionary struct that encapsulates the dictionary and its positional information.
+        - dictionary: A Dictionary struct that encapsulates the dictionary and its positional information.
      - throws:
-        * `TokenizerError`: Typically an error that indicates that the dictionary didn't exist or couldn't be opened.
+        - `TokenizerError`: Typically an error that indicates that the dictionary didn't exist or couldn't be opened.
      */
     public init(dictionary:DictionaryProviding) throws{
         self.dictionary=dictionary
