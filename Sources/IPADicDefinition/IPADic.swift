@@ -44,7 +44,7 @@ public struct IPADic: DictionaryProviding{
         case 3...9:
             return .symbol
         case 10...12:
-            return .adverb
+            return .adjective
         case 13...24:
             return .particle
         case 27...30:

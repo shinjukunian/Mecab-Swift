@@ -15,7 +15,7 @@ let package = Package(
         
         .library(
                 name: "IPADic",
-                targets: ["IPADic"]),
+                targets: ["IPADic", "IPADicDefinition"]),
         
         .library(
             name: "CharacterFilter",
@@ -23,7 +23,9 @@ let package = Package(
         
         .library(
             name: "StringTools",
-            targets: ["StringTools"])
+            targets: ["StringTools"]),
+        
+        .library(name: "Dictionary", targets: ["Dictionary"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.

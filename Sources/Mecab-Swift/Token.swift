@@ -38,7 +38,7 @@ struct Token{
     }
     
     var reading:String{
-        if self.features.count > self.tokenDescription.readingIndex{
+        if self.features.count > self.tokenDescription.readingIndex, self.features[self.tokenDescription.readingIndex] != "*"{
             return self.features[self.tokenDescription.readingIndex]
         }
         return self.surface
