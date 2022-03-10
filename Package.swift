@@ -14,8 +14,10 @@ let package = Package(
             targets: ["Mecab-Swift"]),
         
         .library(
-                name: "IPADic",
+            name: "IPADic",
                 targets: ["IPADic", "IPADicDefinition"]),
+        
+        .library(name: "IPADicDefinition", targets: ["IPADicDefinition"]),
         
         .library(
             name: "CharacterFilter",
