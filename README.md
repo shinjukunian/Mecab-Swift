@@ -1,3 +1,5 @@
+[![Swift](https://github.com/shinjukunian/Mecab-Swift/actions/workflows/swift.yml/badge.svg?branch=master)](https://github.com/shinjukunian/Mecab-Swift/actions/workflows/swift.yml)
+
 # Mecab-Swift
 
 This package provides a Swift wrapper around MeCab <https://taku910.github.io/mecab/>, a part-of-speech and morphological analyzer for Japanese.
