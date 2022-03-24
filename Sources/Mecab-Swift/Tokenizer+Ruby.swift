@@ -59,7 +59,7 @@ extension Tokenizer{
                                 }
                             }
                             else{
-                                guard disallowedCharacters.isSuperset(of: presentKanji) else{
+                                guard disallowedCharacters.isSuperset(of: presentKanji) == false else{
                                     retVal.append(original)
                                     continue
                                 }

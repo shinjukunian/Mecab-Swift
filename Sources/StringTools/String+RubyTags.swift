@@ -62,7 +62,7 @@ extension String{
                                 }
                             }
                             else{
-                                guard disallowedCharacters.isSuperset(of: Set(subString.kanjiCharacters)) else{
+                                guard disallowedCharacters.isSuperset(of: Set(subString.kanjiCharacters)) == false else{
                                     return subString
                                 }
                             }
