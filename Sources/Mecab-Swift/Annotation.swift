@@ -10,21 +10,21 @@ import StringTools
 import Dictionary
 
 /**
- `Annotation`s encapsulate the information of the `Tokenizer`.
- - base: represents the string value of the token in the original text
- - reading: in case `base` contains Kanji characters, the reading if the characters. The reading is formatted according to `Transliteration`
- - partOfSpeech: A member of the `PartOfSpeech` enum.
- - range: The range of the annotation in the original string, in UTF8 format.
- - dictionaryForm: in case of verbs or adjectives, the dictionary form of the token.
- */
-
+`Annotation`s encapsulate the information of the `Tokenizer`.
+*/
 public struct Annotation:Equatable, FuriganaAnnotating{
     
+    ///Represents the string value of the token in the original text
     public let base:String
+    ///In case `base` contains Kanji characters, the reading if the characters. The reading is formatted according to `Transliteration`
     public let reading:String
+    ///A member of the `PartOfSpeech` enum.
     public let partOfSpeech:PartOfSpeech
+    ///The range of the annotation in the original string, in UTF8 format.
     public let range:Range<String.Index>
+    ///In case of verbs or adjectives, the dictionary form of the token.
     public let dictionaryForm:String
+    
     let transliteration:Tokenizer.Transliteration
     
     init(token:Token, range:Range<String.Index>, transliteration:Tokenizer.Transliteration) {

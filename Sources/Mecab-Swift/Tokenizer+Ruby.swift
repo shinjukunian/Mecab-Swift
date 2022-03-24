@@ -51,14 +51,15 @@ extension Tokenizer{
                     else if original.containsKanjiCharacters{
                         
                         if disallowedCharacters.isEmpty == false {
+                            let presentKanji=Set(token.original.kanjiCharacters)
                             if strict{
-                                guard disallowedCharacters.isDisjoint(with: Set(token.original.kanjiCharacters)) == false else{
+                                guard disallowedCharacters.isDisjoint(with: presentKanji) else{
                                     retVal.append(original)
                                     continue
                                 }
                             }
                             else{
-                                guard disallowedCharacters.isSuperset(of: Set(token.original.kanjiCharacters)) == false else{
+                                guard disallowedCharacters.isSuperset(of: presentKanji) else{
                                     retVal.append(original)
                                     continue
                                 }

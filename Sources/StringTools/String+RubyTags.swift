@@ -21,6 +21,7 @@ extension String{
      - returns:
         A `<ruby>` annotated string suitable for display in a browser.
      */
+    
     public func rubyTaggedString(useRomaji:Bool = false, kanjiOnly:Bool = true, disallowedCharacters:Set<String> = Set<String>(), strict:Bool = false, transliterateAll:Bool = false)->String{
         
         var outString=""
@@ -56,12 +57,12 @@ extension String{
                     else if subString.containsKanjiCharacters{
                         if !disallowedCharacters.isEmpty{
                             if strict{
-                                guard disallowedCharacters.isDisjoint(with: Set(subString.kanjiCharacters)) == false else{
+                                guard disallowedCharacters.isDisjoint(with: Set(subString.kanjiCharacters)) else{
                                     return subString
                                 }
                             }
                             else{
-                                guard disallowedCharacters.isSuperset(of: Set(subString.kanjiCharacters)) == false else{
+                                guard disallowedCharacters.isSuperset(of: Set(subString.kanjiCharacters)) else{
                                     return subString
                                 }
                             }
@@ -83,7 +84,7 @@ extension String{
                             return subString
                         }
                         if kanjiOnly == true, useRomaji==false{
-                            #warning("this could be solved more elegnatly")
+//                            #warning("this could be solved more elegnatly")
                             furigana=furigana.cleanupFurigana(base: subString)
                         }
                         

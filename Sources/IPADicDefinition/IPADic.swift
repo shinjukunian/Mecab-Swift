@@ -15,7 +15,7 @@ public struct IPADic: DictionaryProviding{
     
     public let url:URL
     /**
-        Initializes the IPADic instance with dictionary data at the sepcified `URL`.
+    Initializes the IPADic instance with dictionary data at the sepcified `URL`.
      - parameters:
         - url:  The IPADic url.
      */

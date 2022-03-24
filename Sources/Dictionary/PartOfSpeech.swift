@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Various Tokens ofr Part-of-Speech tagging.
 public enum PartOfSpeech:CustomStringConvertible{
     case verb
     case particle

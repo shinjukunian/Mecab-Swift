@@ -18,10 +18,14 @@ public extension String{
      */
     
     struct SystemTokenizerAnnotation: FuriganaAnnotating{
+        /// The original string as found in the text
         public let base:String
+        /// The transliterated string as katakana, following the format of `mecab`
         public let reading:String
+        /// The range of the base string in the underlying text
         public let range:Range<String.Index>
     }
+    
     /**A convenience function to use the system tokenizer to tokenize strings.
      */
     func systemTokenizerFuriganaAnnotations(noSubstrings:Bool = true)->[SystemTokenizerAnnotation]{
@@ -102,9 +106,6 @@ public extension String{
             
             
         }
-            
-            
-        
         return annotations
     }
     

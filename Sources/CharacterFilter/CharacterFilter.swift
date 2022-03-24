@@ -7,18 +7,32 @@
 
 import Foundation
 
+    /**
+     The Character Filtering protocol.
+     This protocol permist the customization of Furigana generation.
+     */
 public protocol CharacterFiltering{
+    ///The `Set<String>` of characters that should be excluded.
     var disallowedCharacters:Set<String> {get}
+    ///A descriptive name.
     var localizedName:String {get}
 }
 
+/**
+    A concrete implementation of `CharacterFiltering`.
+    CharacterFilter implements filtering by school year, JLPT, and Kanken level.
+ */
 public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
     
     public typealias AllCases = [CharacterFilter]
     
+    /// no filtering
     case none
+    /// filter by school year
     case schoolYear(year: SchoolYearFilter)
+    /// filter by JLPT Level
     case JLPT(level: JLPTFilter)
+    /// filter by Kanken level
     case kanken(level: KankenFilter)
 
     public static var allCases: [CharacterFilter]{

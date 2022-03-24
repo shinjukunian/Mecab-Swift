@@ -496,8 +496,34 @@ final class Mecab_SwiftTests: XCTestCase {
         XCTAssertNil(furigana.first(where: {$0.reading == "じんこう"}))
         XCTAssertNotNil(furigana.first(where: {$0.reading == "せかい"}))
         XCTAssert(furigana.count == 1)
+    }
+    
+    func testShort_ruby(){
+        do{
+            let ipadicTokenizer=try Tokenizer(dictionary: IPADic())
+            let system=Tokenizer.systemTokenizer
+            let text="でも鮭もよく食べます。"
+            let rubyAnnotated=ipadicTokenizer.rubyTaggedString(source: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: Set(["食"]), strict: true)])
+            XCTAssert(rubyAnnotated == "でも<ruby>鮭<rt>さけ</rt></ruby>もよく食べます。")
             
+            let systemAnnotated=system.rubyTaggedString(source: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: Set(["食"]), strict: true)])
+            XCTAssert(systemAnnotated == "でも<ruby>鮭<rt>さけ</rt></ruby>もよく食べます。")
+                                                                                                  
+            let long="熊のプーさんの大好物はハチミツです。熊のプーさんは英語でWinni-The-Poohと呼ぶんです。"
             
+            let ruby=ipadicTokenizer.rubyTaggedString(source: long,
+                                                      transliteration: .hiragana,
+                                                      options: [
+                                                        .kanjiOnly,
+                                                        .filter(disallowedCharacters: CharacterFilter.schoolYear(year: .elementary3).disallowedCharacters, strict: true)
+                                                      ])
+            
+            XCTAssert(ruby.isEmpty==false)
+            
+        }
+        catch let error{
+            XCTFail(error.localizedDescription)
+        }
        
     }
     

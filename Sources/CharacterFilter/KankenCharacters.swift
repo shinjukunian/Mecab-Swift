@@ -7,7 +7,7 @@
 
 import Foundation
 
-
+/// The Kanken (Kanji Aptitude Test) filter.
 public enum KankenFilter:String, CharacterFiltering, Equatable, Codable, CaseIterable, Identifiable, CustomStringConvertible{
     
     case kanken10

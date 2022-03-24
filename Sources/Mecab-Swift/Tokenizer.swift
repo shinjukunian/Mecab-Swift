@@ -123,7 +123,7 @@ public class Tokenizer{
                 if let token=Token(node: n.pointee, tokenDescription: self.dictionary){
                                         
                     let endPos=text.utf8.index(pos, offsetBy: token.lengthIncludingWhiteSpace)
-                    
+                    // this will not work for some strings if the UTF 8 indices refer to composed character sequences.
 //                    guard let charEnd=endPos.samePosition(in: text),
 //                          let charStart=pos.samePosition(in: text) else{
 //                        continue
@@ -149,7 +149,7 @@ public class Tokenizer{
     /**
     A convenience function to tokenize text into `FuriganaAnnotations`.
      
-     `FuriganaAnnotations` are meant for displaying furigana reading aids for Japanese Kanji characters, and consequently tokens that don't contain Kanji are skipped.
+    `FuriganaAnnotations` are meant for displaying furigana reading aids for Japanese Kanji characters, and consequently tokens that don't contain Kanji are skipped.
     - parameters:
        - text: A `string` that contains the text to tokenize.
        - transliteration : A `Transliteration` method. The text content of found tokens will be displayed using this.
@@ -166,7 +166,7 @@ public class Tokenizer{
     /**
        A convenience function to add `<ruby>` tags to  text.
         
-        `<ruby>` tags are added to all tokens that contain Kanji characters, regardless of whether they are on specific parts of an HTML document or not. This can potentially disrupt scripts or navigation.
+     `<ruby>` tags are added to all tokens that contain Kanji characters, regardless of whether they are on specific parts of an HTML document or not. This can potentially disrupt scripts or navigation.
        - parameters:
           - htmlText: A `string` that contains the text to tokenize.
           - transliteration: A `Transliteration` method. The text content of found tokens will be displayed using this.

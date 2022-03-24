@@ -8,13 +8,35 @@
 
 import Foundation
 
+/// Functions to deal with transliteration
 extension String{
     
+    /// Romanization methods for Japanese text
     public enum RomanizationMethod:Int{
+        
+        /**
+         Word Processor input.
+         
+         Mostly follows Hepburn transcription, e.g. し becomes shi. Long vowels are translated literally, e.g. `とうきょう` becomes `toukyou`.
+        */
         case waPro
+        
+        /**
+         Hepburn
+         
+         Hepburn transcription. Long vowels (o and u) are indicated by a macron (overbar), e.g., `とうきょう` becomes `tōkyō`,
+         
+         */
         case hepburn
     }
     
+    
+    /**
+     Converts a string (hiragana or katakana) to latin characters.
+     - parameters:
+        - method: a RomanizationMethod (the default is .hepburn).
+     - returns: the romanized String
+     */
     public func romanizedString(method:RomanizationMethod = .hepburn)->String{
         
         var transformed:String
@@ -53,6 +75,8 @@ extension String{
 }
 
 public extension String{
+    
+    /// Converts a Katakana string to Hiragana.
     var hiraganaString:String{
         return self.applyingTransform(.hiraganaToKatakana, reverse: true) ?? self
     }
