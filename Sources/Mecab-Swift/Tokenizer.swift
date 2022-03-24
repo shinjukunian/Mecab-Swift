@@ -108,39 +108,40 @@ public class Tokenizer{
     }
     
     fileprivate func mecabTokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
-        let tokens=text.precomposedStringWithCanonicalMapping.withCString({s->[Token] in
-           var tokens=[Token]()
-           var node=mecab_sparse_tonode(self._mecab, s)
-           while true{
-               guard let n = node else {break}
-           
-                   if let token=Token(node: n.pointee, tokenDescription: self.dictionary){
-                       tokens.append(token)
-                   }
-               
-                   node = UnsafePointer(n.pointee.next)
-           }
-           return tokens
-       })
+        
+        let annotations=text.withCString({s->[Annotation] in
+            var annotations=[Annotation]()
+            var node=mecab_sparse_tonode(self._mecab, s)
+            var pos=text.utf8.startIndex
+            while true{
+                guard let n = node else {break}
+                
+                defer{
+                    node = UnsafePointer(n.pointee.next)
+                }
+                
+                if let token=Token(node: n.pointee, tokenDescription: self.dictionary){
+                                        
+                    let endPos=text.utf8.index(pos, offsetBy: token.lengthIncludingWhiteSpace)
+                    
+//                    guard let charEnd=endPos.samePosition(in: text),
+//                          let charStart=pos.samePosition(in: text) else{
+//                        continue
+//                    }
+                    
+                    let range=pos..<endPos
+                                    
+                    let annotation=Annotation(token: token, range: range, transliteration: transliteration)
+                    
+                    pos=endPos
+                    
+                    annotations.append(annotation)
+                }
+                
+            }
+            return annotations
+        })
        
-      
-       var annotations=[Annotation]()
-       var searchRange=text.startIndex..<text.endIndex
-       for token in tokens{
-           let searchString=token.original
-           if searchString.isEmpty{
-               continue
-           }
-           if let foundRange=text.range(of: searchString, options: [], range: searchRange, locale: nil){
-               let annotation=Annotation(token: token, range: foundRange, transliteration: transliteration)
-               annotations.append(annotation)
-               
-               if foundRange.upperBound < text.endIndex{
-                   searchRange=foundRange.upperBound..<text.endIndex
-               }
-           }
-       }
-   
        return annotations
     }
     

@@ -14,6 +14,7 @@ import Dictionary
  - base: represents the string value of the token in the original text
  - reading: in case `base` contains Kanji characters, the reading if the characters. The reading is formatted according to `Transliteration`
  - partOfSpeech: A member of the `PartOfSpeech` enum.
+ - range: The range of the annotation in the original string, in UTF8 format.
  - dictionaryForm: in case of verbs or adjectives, the dictionary form of the token.
  */
 
