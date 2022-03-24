@@ -20,3 +20,7 @@ jobs:
       run: swift build -v
     - name: Run tests
       run: swift test -v
+    - name: Slack Notification
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
