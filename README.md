@@ -17,7 +17,8 @@ Mecab-Swift contains the following targets:
 
 - *Dictionary*: This package provides protocols, i.e. `DictionaryProviding`, that can be used to use other dictionaries with Mecab-Swift
 - *Mecab-Swift*: The package that provides the core functionality, i.e. tokenization and tagging
-- *IPADic*: This package wraps the IPADic dictionary ready to use for Mecab and provides a sample implementation of `DictionaryProviding`.
+- *IPADicDefinition*: This package wraps the IPADic dictionary and provides a sample implementation of `DictionaryProviding`.
+- *IPADic*: This package contains the `IPADic` dictionary resources. Alternatively, IPADicDefinition can also be initialized from a `URL`
 - *StringTools*: Various tools for handling Japanese text and a wrapper around `CFStringTokenizer`, which provides some of the functionality of Mecab on Apple platforms
 - *CharacterFilter*: Character lists of Japanese Kanji characters by school year. Useful for formatting Furigana annotations.
 
@@ -40,6 +41,9 @@ let text = "蜂蜜は熊の大好物です。"
 Instantiate the tokenizer with IPADic
 
 ```swift
+import IPADicDefinition // Tells mecab how to interpret the output of the IPADic dictionary
+import IPADic // contains the actual dictionary resource data.  
+
 let ipadic=IPADic()
 let ipadicTokenizer = try Tokenizer(dictionary: ipadic)
 ```
