@@ -10,7 +10,8 @@ jobs:
   build:
 
     runs-on: macos-latest
-
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
     - uses: actions/checkout@v2
       with:
@@ -20,7 +21,10 @@ jobs:
       run: swift build -v
     - name: Run tests
       run: swift test -v
-    - name: Slack Notification
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+    - uses: act10ns/slack@v1
+      with:
+        status: ${{ job.status }}
+        steps: ${{ toJson(steps) }}
+        channel: '#workflows'
+        if: always()
+      
