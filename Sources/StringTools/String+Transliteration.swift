@@ -9,6 +9,7 @@
 import Foundation
 
 /// Functions to deal with transliteration
+
 extension String{
     
     /// Romanization methods for Japanese text
@@ -37,6 +38,7 @@ extension String{
         - method: a RomanizationMethod (the default is .hepburn).
      - returns: the romanized String
      */
+    @available(macOS 10.11, *)
     public func romanizedString(method:RomanizationMethod = .hepburn)->String{
         
         var transformed:String
@@ -77,6 +79,7 @@ extension String{
 public extension String{
     
     /// Converts a Katakana string to Hiragana.
+    @available(macOS 10.11, *)
     var hiraganaString:String{
         return self.applyingTransform(.hiraganaToKatakana, reverse: true) ?? self
     }

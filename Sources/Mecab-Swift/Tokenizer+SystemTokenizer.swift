@@ -16,7 +16,7 @@ extension Tokenizer{
         
         return annotations.map({annotation in
             return autoreleasepool(invoking: {
-                Annotation(base: annotation.base, reading: annotation.reading, range: annotation.range, dictionaryForm: annotation.base, transliteration: transliteration)
+                Annotation(base: annotation.base, reading: annotation.reading, range: annotation.range, rangeExcludingWhitespace: annotation.range, dictionaryForm: annotation.base, transliteration: transliteration)
             })
             
         })

@@ -209,7 +209,7 @@ final class Mecab_SwiftTests: XCTestCase {
      愛知県で開催中の国際芸術祭「あいちトリエンナーレ2019」の企画展「表現の不自由展・その後」は8日午後に再開する。不自由展は従軍慰安婦を象徴する「平和の少女像」などの展示に抗議が相次ぎ、8月1日の芸術祭開幕から3日で中止に追い込まれていたが、芸術祭実行委員会会長の大村秀章知事が7日、安全対策や入場制限を講じた上で再開すると表明した。【写真特集】大勢の来場者が鑑賞していた「平和の少女像」芸術祭実行委員会のホームページによると、入場は1日2回に制限し、抽選で1回30人に絞り、1回目は午後2時10分から1時間。2回目は午後4時20分から40分間。大村知事の7日の発表によると、鑑賞者は事前にエデュケーション（教育）プログラムを実施し、ガイドを付けて鑑賞する。また、安全を確保するため金属探知機によるチェックも行う。不自由展の中止後、抗議の意思を示すため、芸術祭に参加していた他の国内外10組以上の作家が出展を中止・変更していたが、同展再開に伴い、全作家が復帰する。不自由展が開幕3日で中止になったことを巡っては、文化庁が「（開催により）円滑な運営が脅かされることを認識していたにもかかわらず、申告しなかった」などとして、既に採択していた県への補助金の全額不交付を決めている。芸術祭は14日まで。【竹田直人】
      """
                 
-                let rubyString=tokenizer.addRubyTags(to: string, transliteration: .hiragana, options: [.kanjiOnly])
+                let rubyString=tokenizer.rubyTaggedString(source: string, transliteration: .hiragana, options: [.kanjiOnly])
                 XCTAssertFalse(rubyString.isEmpty)
                 XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
             }

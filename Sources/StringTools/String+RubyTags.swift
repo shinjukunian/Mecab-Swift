@@ -21,7 +21,7 @@ extension String{
      - returns:
         A `<ruby>` annotated string suitable for display in a browser.
      */
-    
+    @available(macOS 10.11, *)
     public func rubyTaggedString(useRomaji:Bool = false, kanjiOnly:Bool = true, disallowedCharacters:Set<String> = Set<String>(), strict:Bool = false, transliterateAll:Bool = false)->String{
         
         var outString=""

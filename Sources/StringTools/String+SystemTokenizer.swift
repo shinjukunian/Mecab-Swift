@@ -28,6 +28,7 @@ public extension String{
     
     /**A convenience function to use the system tokenizer to tokenize strings.
      */
+    @available(macOS 10.11, *)
     func systemTokenizerFuriganaAnnotations(noSubstrings:Bool = true)->[SystemTokenizerAnnotation]{
         let japaneseLocale=Locale(identifier: "ja_JP")
         

@@ -98,6 +98,7 @@ public class Tokenizer{
         - transliteration : A `Transliteration` method. The text content of found tokens will be displayed using this.
      - returns: An array of `Annotation`, a struct that contains the found tokens (the token value, the reading, POS, etc.).
      */
+    @available(macOS 10.11, *)
     public func tokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
         if self.isSystemTokenizer{
             return self.systemTokenizerTokenize(text: text, transliteration: transliteration)
@@ -130,8 +131,12 @@ public class Tokenizer{
 //                    }
                     
                     let range=pos..<endPos
-                                    
-                    let annotation=Annotation(token: token, range: range, transliteration: transliteration)
+                    
+                    let endPosWhiteSpace=text.utf8.index(pos, offsetBy: token.length)
+                            
+                    let rangeWhitespace = pos..<endPosWhiteSpace
+                    
+                    let annotation=Annotation(token: token, range: range, rangeExcludingWhitespace: rangeWhitespace, transliteration: transliteration)
                     
                     pos=endPos
                     
@@ -156,6 +161,7 @@ public class Tokenizer{
        - options : Options to pass to the tokenizer
     - returns: An array of `FuriganaAnnotations`, which contain the reading o fthe token and the range of the token in the original text.
     */
+    @available(macOS 10.11, *)
     public func furiganaAnnotations(for text:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->[FuriganaAnnotation]{
         
         return self.tokenize(text: text, transliteration: transliteration)
@@ -174,6 +180,7 @@ public class Tokenizer{
        - returns: A text with `<ruby>` annotations.
        */
     @available(*, deprecated, message: "Use the streaming function rubyTaggedString instead")
+    @available(macOS 10.11, *)
     public func addRubyTags(to htmlText:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->String{
         let furigana=self.furiganaAnnotations(for: htmlText, transliteration: transliteration, options: options)
         var searchRange:Range<String.Index> = htmlText.startIndex ..< htmlText.endIndex
@@ -202,7 +209,7 @@ public class Tokenizer{
           - options: Options to pass to the tokenizer
        - returns: A text with `<ruby>` annotations.
        */
-    
+    @available(macOS 10.11, *)
     public func rubyTaggedString(source htmlString:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly], transliterateAll:Bool = false)->String{
         
         var characters=Set<String>()

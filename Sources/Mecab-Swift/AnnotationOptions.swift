@@ -7,6 +7,7 @@
 
 import Foundation
 
+@available(macOS 10.11, *)
 extension Annotation{
     
     //Ideally, this should be an option set with associated values, but that doesnt seem to exist in swift
