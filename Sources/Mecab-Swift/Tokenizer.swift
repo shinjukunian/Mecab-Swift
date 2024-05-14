@@ -171,17 +171,20 @@ public class Tokenizer{
        */
     public func addRubyTags(to htmlText:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->String{
         let furigana=self.furiganaAnnotations(for: htmlText, transliteration: transliteration, options: options)
-        var searchRange:Range<String.Index> = htmlText.startIndex ..< htmlText.endIndex
-        var outString=htmlText
+        var outString=""
+        var endIDX = htmlText.startIndex
+        
         for annotation in furigana{
+            outString += htmlText[endIDX..<annotation.range.lowerBound]
             
-            if let tokenRange=outString.range(of: htmlText[annotation.range], options: [], range: searchRange, locale: nil){
-                let htmlRuby="<ruby>\(htmlText[annotation.range])<rt>\(annotation.reading)</rt></ruby>"
-                outString.replaceSubrange(tokenRange, with: htmlRuby)
-                searchRange = outString.index(tokenRange.lowerBound, offsetBy: htmlRuby.count) ..< outString.endIndex
-                
-            }
+            let original = htmlText[annotation.range]
+            let htmlRuby="<ruby>\(original)<rt>\(annotation.reading)</rt></ruby>"
+            outString += htmlRuby
+            endIDX = annotation.range.upperBound
         }
+        
+        outString += htmlText[endIDX..<htmlText.endIndex]
+        
         return outString
     
     }
@@ -192,6 +195,13 @@ public class Tokenizer{
     
 }
 
+
+//if let lowerBound = outString.index(tokenRange.lowerBound, offsetBy: htmlRuby.count, limitedBy: outString.endIndex){
+//    searchRange = lowerBound ..< outString.endIndex
+//}
+//else{
+//    continue
+//}
 
 
 
