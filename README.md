@@ -1,4 +1,7 @@
 [![Swift](https://github.com/shinjukunian/Mecab-Swift/actions/workflows/swift.yml/badge.svg?branch=master)](https://github.com/shinjukunian/Mecab-Swift/actions/workflows/swift.yml)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fshinjukunian%2FMecab-Swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/shinjukunian/Mecab-Swift)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fshinjukunian%2FMecab-Swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/shinjukunian/Mecab-Swift)
+
 
 # Mecab-Swift
 
