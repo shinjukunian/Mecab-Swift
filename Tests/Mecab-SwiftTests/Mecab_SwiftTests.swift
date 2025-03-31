@@ -245,12 +245,10 @@ final class Mecab_SwiftTests: XCTestCase {
     func testHTML(){
         
         do{
-            let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
-            let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("helicobacter").appendingPathExtension("html")
+            let htmlURL = Bundle.module.url(forResource: "helicobacter", withExtension: "html", subdirectory: nil)!
             let htmlText=try String(contentsOf: htmlURL)
             
             let tokenizer=try Tokenizer(dictionary: IPADic())
-            
             
             let rubyString=tokenizer.addRubyTags(to: htmlText, transliteration: .hiragana, options: [.kanjiOnly])
             XCTAssertFalse(rubyString.isEmpty)
