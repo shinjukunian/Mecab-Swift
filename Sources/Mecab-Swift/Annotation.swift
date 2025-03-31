@@ -10,44 +10,60 @@ import StringTools
 import Dictionary
 
 /**
- `Annotation`s encapsulate the information of the `Tokenizer`.
- - base: represents the string value of the token in the original text
- - reading: in case `base` contains Kanji characters, the reading if the characters. The reading is formatted according to `Transliteration`
- - partOfSpeech: A member of the `PartOfSpeech` enum.
- - dictionaryForm: in case of verbs or adjectives, the dictionary form of the token.
- */
-
+`Annotation`s encapsulate the information of the `Tokenizer`.
+*/
+@available(macOS 10.11, *)
 public struct Annotation:Equatable, FuriganaAnnotating{
     
+    ///Represents the string value of the token in the original text
     public let base:String
+    
+    ///In case `base` contains Kanji characters, the reading if the characters. The reading is formatted according to `Transliteration`
     public let reading:String
+    
+    ///A member of the `PartOfSpeech` enum.
     public let partOfSpeech:PartOfSpeech
+    
+    ///The range of the annotation in the original string, in UTF8 format.
     public let range:Range<String.Index>
+    
+    ///The range of the annotation in the original string excluding surrounding whitespace, in UTF8 format.
+    public let rangeExcludingWhitespace:Range<String.Index>
+    
+    ///In case of verbs or adjectives, the dictionary form of the token.
     public let dictionaryForm:String
+    
     let transliteration:Tokenizer.Transliteration
     
-    init(token:Token, range:Range<String.Index>, transliteration:Tokenizer.Transliteration) {
-        self.init(base: token.original, reading: token.reading, range: range, dictionaryForm: token.dictionaryForm, transliteration: transliteration, POS: token.partOfSpeech)
+    init(token:Token, range:Range<String.Index>, rangeExcludingWhitespace:Range<String.Index>, transliteration:Tokenizer.Transliteration) {
+        self.init(base: token.original, reading: token.reading, range: range, rangeExcludingWhitespace: rangeExcludingWhitespace, dictionaryForm: token.dictionaryForm, transliteration: transliteration, POS: token.partOfSpeech)
     }
     
-    init(base:String, reading:String, range:Range<String.Index>, dictionaryForm:String, transliteration:Tokenizer.Transliteration, POS:PartOfSpeech = .unknown){
+    init(base:String, reading:String, range:Range<String.Index>, rangeExcludingWhitespace:Range<String.Index>, dictionaryForm:String, transliteration:Tokenizer.Transliteration, POS:PartOfSpeech = .unknown){
         self.base=base
         self.range=range
+        self.rangeExcludingWhitespace=rangeExcludingWhitespace
         self.partOfSpeech = POS
         self.transliteration = transliteration
         
-        switch transliteration {
-        case .katakana:
+        if !base.containsKanjiCharacters{
             self.reading=reading
             self.dictionaryForm=dictionaryForm
-        case .hiragana:
-            self.reading=reading.hiraganaString
-            self.dictionaryForm=dictionaryForm.hiraganaString
-        case .romaji:
-            self.reading=reading.romanizedString(method: .hepburn)
-            self.dictionaryForm=dictionaryForm.romanizedString(method: .hepburn)
         }
-        
+        else{
+            switch transliteration {
+            case .katakana:
+                self.reading=reading
+                self.dictionaryForm=dictionaryForm
+            case .hiragana:
+                self.reading=reading.hiraganaString
+                self.dictionaryForm=dictionaryForm.hiraganaString
+            case .romaji:
+                self.reading=reading.romanizedString(method: .hepburn)
+                self.dictionaryForm=dictionaryForm.romanizedString(method: .hepburn)
+            }
+        }
+ 
     }
     
     /**
@@ -88,19 +104,19 @@ public struct Annotation:Equatable, FuriganaAnnotating{
             }
         }
         
-        if options.contains(.kanjiOnly){
+        if options.contains(.kanjiOnly), self.transliteration != .romaji{
             guard self.containsKanji else{
                 return nil
             }
             return self.furiganaAnnotation(for: string, kanjiOnly: true)
         }
         else{
-            return FuriganaAnnotation(reading: self.reading , range: self.range)
+            return FuriganaAnnotation(reading: self.reading , range: self.rangeExcludingWhitespace)
         }
     }
 }
 
-
+@available(macOS 10.11, *)
 extension Annotation:CustomStringConvertible{
     public var description: String{
         return "Base: \(base), reading: \(reading), POS: \(partOfSpeech)"

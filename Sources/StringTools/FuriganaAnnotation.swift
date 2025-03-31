@@ -10,6 +10,7 @@ import Foundation
 /**
  Represents the reading of Kanji character-containing tokens an the range in the underlying text. Meant for easy display of Furigana-annotated text.
  */
+
 public struct FuriganaAnnotation:CustomStringConvertible,Equatable,Comparable{
    
     /**

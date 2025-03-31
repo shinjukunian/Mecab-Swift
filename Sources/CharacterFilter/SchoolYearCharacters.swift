@@ -7,6 +7,8 @@
 
 import Foundation
 
+
+/// School Year Filter
 public enum SchoolYearFilter:String, CharacterFiltering,Codable,CaseIterable,Hashable, Identifiable, CustomStringConvertible{
     
     case elementary1

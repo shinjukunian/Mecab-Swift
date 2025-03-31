@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -14,8 +14,10 @@ let package = Package(
             targets: ["Mecab-Swift"]),
         
         .library(
-                name: "IPADic",
-                targets: ["IPADic"]),
+            name: "IPADic",
+                targets: ["IPADic", "IPADicDefinition"]),
+        
+        .library(name: "IPADicDefinition", targets: ["IPADicDefinition"]),
         
         .library(
             name: "CharacterFilter",
@@ -23,7 +25,9 @@ let package = Package(
         
         .library(
             name: "StringTools",
-            targets: ["StringTools"])
+            targets: ["StringTools"]),
+        
+        .library(name: "Dictionary", targets: ["Dictionary"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -41,17 +45,21 @@ let package = Package(
         .target(name: "CharacterFilter"),
         .target(name: "StringTools"),
         
-        .target(name: "IPADic", dependencies: ["Dictionary"], resources: [.copy("ipadic dictionary")]),
+        .target(name: "IPADic", dependencies: ["IPADicDefinition"], resources: [.copy("ipadic dictionary")]),
+        .target(name: "IPADicDefinition", dependencies: ["Dictionary"]),
         
         .testTarget(
             name: "Mecab-SwiftTests",
             dependencies: ["Mecab-Swift", "CharacterFilter", "IPADic"],
-            resources: [.copy("Resources/helicobacter.html")]
+            resources: [.copy("Resources/helicobacter.html"),
+                        .copy("Resources/england.html")]
+
         ),
         
         .testTarget(
             name: "StringToolsTests",
-            dependencies: ["StringTools"]),
+            dependencies: ["StringTools"],
+            resources: [.copy("Resources/helicobacter.html")]),
         
         .target(name: "mecab", dependencies: [],
                 path: "Sources/mecab/mecab",

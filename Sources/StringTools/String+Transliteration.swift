@@ -8,32 +8,55 @@
 
 import Foundation
 
+/// Functions to deal with transliteration
+
 extension String{
     
+    /// Romanization methods for Japanese text
     public enum RomanizationMethod:Int{
+        
+        /**
+         Word Processor input.
+         
+         Mostly follows Hepburn transcription, e.g. し becomes shi. Long vowels are translated literally, e.g. `とうきょう` becomes `toukyou`.
+        */
         case waPro
+        
+        /**
+         Hepburn
+         
+         Hepburn transcription. Long vowels (o and u) are indicated by a macron (overbar), e.g., `とうきょう` becomes `tōkyō`,
+         
+         */
         case hepburn
     }
     
+    
+    /**
+     Converts a string (hiragana or katakana) to latin characters.
+     - parameters:
+        - method: a RomanizationMethod (the default is .hepburn).
+     - returns: the romanized String
+     */
+    @available(macOS 10.11, *)
     public func romanizedString(method:RomanizationMethod = .hepburn)->String{
         
-        let mutableSelf=CFStringCreateMutableCopy(nil, 0, self as CFString)
+        var transformed:String
         if self.japaneseScriptType.contains(.hiragana){
-            CFStringTransform(mutableSelf, nil, kCFStringTransformLatinHiragana, true)
+            transformed=self.applyingTransform(.latinToHiragana, reverse: true) ?? ""
         }
         else if self.japaneseScriptType.contains(.katakana){
-            CFStringTransform(mutableSelf, nil, kCFStringTransformLatinKatakana, true)
+            transformed=self.applyingTransform(.latinToKatakana, reverse: true) ?? ""
         }
-        let transformed=CFStringCreateCopy(nil, mutableSelf)
+        else{
+            transformed=self
+        }
+
         
         switch method {
         case .waPro:
-            
-            return (transformed as String?) ?? self
-            
+            return transformed
         case .hepburn:
-            guard let t=CFStringCreateCopy(nil, mutableSelf) else{return self}
-            var transformed=t as String
             
             transformed=transformed.replacingOccurrences(of: "ou", with: "ō", options: [.literal], range: transformed.startIndex..<transformed.endIndex)
             transformed=transformed.replacingOccurrences(of: "Ou", with: "Ō", options: [.literal], range: transformed.startIndex..<transformed.endIndex)
@@ -47,7 +70,6 @@ extension String{
             transformed=transformed.replacingOccurrences(of: "Ii", with: "Ī", options: [.literal], range: transformed.startIndex..<transformed.endIndex)
             transformed=transformed.replacingOccurrences(of: "uu", with: "ū", options: [.literal], range: transformed.startIndex..<transformed.endIndex)
             transformed=transformed.replacingOccurrences(of: "Uu", with: "Ū", options: [.literal], range: transformed.startIndex..<transformed.endIndex)
-
             return transformed
         }
         
@@ -55,9 +77,10 @@ extension String{
 }
 
 public extension String{
+    
+    /// Converts a Katakana string to Hiragana.
+    @available(macOS 10.11, *)
     var hiraganaString:String{
-        guard let mutableSelf=CFStringCreateMutableCopy(nil, 0, self as CFString) else{return self}
-        CFStringTransform(mutableSelf, nil, kCFStringTransformHiraganaKatakana, true)
-        return CFStringCreateCopy(nil, mutableSelf) as String
+        return self.applyingTransform(.hiraganaToKatakana, reverse: true) ?? self
     }
 }

@@ -18,8 +18,20 @@
 "none" = "None";
 "JLPT" = "JLPT";
 "schoolyear" = "School Year";
+"kanken" = "Kanken";
 
-
+"Kanken 10" = "Kanken Level 10";
+"Kanken 9" = "Kanken Level 9";
+"Kanken 8" = "Kanken Level 8";
+"Kanken 7" = "Kanken Level 7";
+"Kanken 6" = "Kanken Level 6";
+"Kanken 5" = "Kanken Level 5";
+"Kanken 4" = "Kanken Level 4";
+"Kanken 3" = "Kanken Level 3";
+"Kanken Pre 2" = "Kanken Level Pre-2";
+"Kanken 2" = "Kanken Level 2";
+"Kanken Pre 1" = "Kanken Level Pre-1";
+"Kanken 1" = "Kanken Level 1";
 
 
 

@@ -8,14 +8,19 @@ This package is used in Furiganify <https://apps.apple.com/us/app/furiganify/id1
 
 ## Installation
 Using the Swift package manager. Simply add
+
 ```swift
 .package(url: "https://github.com/shinjukunian/Mecab-Swift", .branch("master"))
 ```
+
 to dependencies in your `Package.swift` file or add Mecab-Swift via Xcode as a package dependency using `https://github.com/shinjukunian/Mecab-Swift` as the URL.
+
 Mecab-Swift contains the following targets:
+
 - *Dictionary*: This package provides protocols, i.e. `DictionaryProviding`, that can be used to use other dictionaries with Mecab-Swift
 - *Mecab-Swift*: The package that provides the core functionality, i.e. tokenization and tagging
-- *IPADic*: This package wraps the IPADic dictionary ready to use for Mecab and provides a sample implementation of `DictionaryProviding`.
+- *IPADicDefinition*: This package wraps the IPADic dictionary and provides a sample implementation of `DictionaryProviding`.
+- *IPADic*: This package contains the `IPADic` dictionary resources. Alternatively, IPADicDefinition can also be initialized from a `URL`
 - *StringTools*: Various tools for handling Japanese text and a wrapper around `CFStringTokenizer`, which provides some of the functionality of Mecab on Apple platforms
 - *CharacterFilter*: Character lists of Japanese Kanji characters by school year. Useful for formatting Furigana annotations.
 
@@ -30,22 +35,29 @@ import Mecab_Swift
 ```
 
  Using a brief text
+ 
 ```swift
 let text = "蜂蜜は熊の大好物です。"
 ```
 
 Instantiate the tokenizer with IPADic
+
 ```swift
+import IPADicDefinition // Tells mecab how to interpret the output of the IPADic dictionary
+import IPADic // contains the actual dictionary resource data.  
+
 let ipadic=IPADic()
 let ipadicTokenizer = try Tokenizer(dictionary: ipadic)
 ```
 To get the tokens, we can use
+
 ```swift
 let ipadicTokens=ipadicTokenizer.tokenize(text: text, transliteration: .hiragana)
 //[Base: 蜂蜜, reading: はちみつ, POS: noun, Base: は, reading: は, POS: particle, Base: 熊, reading: くま, POS: noun, Base: の, reading: の, POS: particle, Base: 大, reading: だい, POS: prefix, Base: 好物, reading: こうぶつ, POS: noun, Base: です, reading: です, POS: unknown, Base: 。, reading: 。, POS: symbol]
 ```
 
 We can get all nouns in the sentence
+
 ```swift
 let nouns=ipadicFurigana.filter {$0.partOfSpeech == .noun}.map {$0.base}
 print("The nouns in \"\(text)\" are \(ListFormatter().string(from: nouns) ?? "")")
@@ -53,11 +65,13 @@ print("The nouns in \"\(text)\" are \(ListFormatter().string(from: nouns) ?? "")
 ```
 
 We can use the tokens to convert the the text to hiragana:
+
 ```swift
 let hiraganized = ipadicTokens.map{$0.reading}.joined()
 //はちみつはくまのだいこうぶつです。
 ```
 or to Romaji
+
 ```swift
 let romajiTokens=ipadicTokenizer.tokenize(text: text, transliteration: .romaji)
 let romanized = romajiTokens.map{$0.reading}.joined(separator: " ")
@@ -65,6 +79,7 @@ let romanized = romajiTokens.map{$0.reading}.joined(separator: " ")
 ```
 
 We can compare this to the output of the system tokenizer
+
 ```swift
 let system=Tokenizer.systemTokenizer
 let systemTokens=system.tokenize(text: text)
@@ -76,6 +91,7 @@ let hiragana=systemTokens.map {$0.reading}.joined())
 ```
 
 One key application is Kanji-to-Kana conversion, e.g. for Furigana annotations. This can be achieved by
+
 ```swift
 let longerText=text + "でも鮭もよく食べます。"
 let furigana=ipadicTokenizer.furiganaAnnotations(for: longerText, transliteration: .hiragana, options: [.kanjiOnly])
@@ -85,6 +101,7 @@ This returns an array of `FuriganaAnnotation`. The `.kanjiOnly` option, which is
 
 
 Mecab also provides deinflected (lemmatized) forms of Japanese verbs.
+
 ```swift
 let lemmatized = ipadicTokenizer.tokenize(text: "でも鮭もよく食べます。")
     .filter {$0.partOfSpeech == .verb}
@@ -101,6 +118,40 @@ let NLtokens=NLtokenizer.tokens(for: text.startIndex..<text.endIndex).map{text[$
 //["で", "も", "鮭", "も", "よく", "食べ", "ます"]
 ```
 As of iOS14, part-of-speech tagging and lemmatization appear to be unavailable for Japanese.
+
+# HTML annotation
+Mecab-Swift provides convenience functions to add `<ruby>` tags to HTML text.
+
+```swift
+let text="でも鮭もよく食べます。"
+let rubyAnnotated=ipadicTokenizer.rubyTaggedString(source: text, transliteration: .hiragana, options: [.kanjiOnly])
+//でも<ruby>鮭<rt>さけ</rt></ruby>もよく<ruby>食べ<rt>た　</rt></ruby>ます。
+```
+でも<ruby>鮭<rt>さけ</rt></ruby>もよく<ruby>食べ<rt>た　</rt></ruby>ます。
+
+Furigana generation can be customized by filters. 
+
+```swift
+let rubyAnnotated=ipadicTokenizer.rubyTaggedString(source: text, transliteration: .hiragana, options: [.kanjiOnly, .filter(disallowedCharacters: Set(["食"]])
+//でも<ruby>鮭<rt>さけ</rt></ruby>もよく食べます。
+```
+でも<ruby>鮭<rt>さけ</rt></ruby>もよく食べます。
+
+This is more conveniently expressed using the `CharacterFiltering` protocol. `Mecab-Swift` includes filters for school year as well as JLPT and Kanken Level.
+
+```Swift
+let long="熊のプーさんの大好物はハチミツです。熊のプーさんは英語でWinni-The-Poohと呼ぶんです。"
+let ruby=ipadicTokenizer.rubyTaggedString(source: long,
+                                          transliteration: .hiragana,
+                                          options: [
+                                                    .kanjiOnly,
+                                                    .filter(disallowedCharacters: 
+                                                        CharacterFilter.schoolYear(year: .elementary3)
+                                                        .disallowedCharacters, strict: true)
+                                                    ])
+//<ruby>熊<rt>くま</rt></ruby>のプーさんの大好物はハチミツです。<ruby>熊<rt>くま</rt></ruby>のプーさんは英語でWinni-The-Poohと<ruby>呼ぶ<rt>よ　</rt></ruby>んです。
+```
+<ruby>熊<rt>くま</rt></ruby>のプーさんの大好物はハチミツです。<ruby>熊<rt>くま</rt></ruby>のプーさんは英語でWinni-The-Poohと<ruby>呼ぶ<rt>よ　</rt></ruby>んです。
 
 
 ## Licence

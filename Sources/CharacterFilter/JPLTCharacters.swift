@@ -7,7 +7,7 @@
 
 import Foundation
 
-
+/// The JLPT filter, from level JLPT 5 to JLPT1
 public enum JLPTFilter:String, CharacterFiltering, Equatable, Codable, CaseIterable, Identifiable, CustomStringConvertible{
     
     case JLTP5
