@@ -53,6 +53,7 @@ let package = Package(
             dependencies: ["Mecab-Swift", "CharacterFilter", "IPADic"],
             resources: [.copy("Resources/helicobacter.html"),
                         .copy("Resources/england.html")]
+
         ),
         
         .testTarget(

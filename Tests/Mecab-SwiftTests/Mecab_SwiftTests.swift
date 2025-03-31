@@ -278,13 +278,14 @@ final class Mecab_SwiftTests: XCTestCase {
     func testHTML(){
         
         do{
+
             let htmlURL=Bundle.module.url(forResource: "helicobacter", withExtension: "html", subdirectory: nil)!
             let htmlText=try String(contentsOf: htmlURL)
             
             let tokenizer=try Tokenizer(dictionary: IPADic())
-            
-            
+                      
             let rubyString=tokenizer.rubyTaggedString(source: htmlText, transliteration: .hiragana)
+
             XCTAssertFalse(rubyString.isEmpty)
             XCTAssertFalse(rubyString.range(of: "<ruby>")?.isEmpty ?? true)
             
