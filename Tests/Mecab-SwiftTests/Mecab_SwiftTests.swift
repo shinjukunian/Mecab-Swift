@@ -278,8 +278,7 @@ final class Mecab_SwiftTests: XCTestCase {
     func testHTML(){
         
         do{
-            let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
-            let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("helicobacter").appendingPathExtension("html")
+            let htmlURL=Bundle.module.url(forResource: "helicobacter", withExtension: "html", subdirectory: nil)!
             let htmlText=try String(contentsOf: htmlURL)
             
             let tokenizer=try Tokenizer(dictionary: IPADic())
@@ -322,8 +321,7 @@ final class Mecab_SwiftTests: XCTestCase {
 //    }
     
     func testPerformanceStreamingMecab(){
-        let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
-        let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("イギリス").appendingPathExtension("html")
+        let htmlURL=Bundle.module.url(forResource: "england", withExtension: "html", subdirectory: nil)!
         measure {
             do{
                 let htmlText=try String(contentsOf: htmlURL)
@@ -339,8 +337,7 @@ final class Mecab_SwiftTests: XCTestCase {
     }
     
     func testPerformanceStreamingMecab_transliterateAll(){
-        let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
-        let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("イギリス").appendingPathExtension("html")
+        let htmlURL=Bundle.module.url(forResource: "england", withExtension: "html", subdirectory: nil)!
         measure {
             do{
                 let htmlText=try String(contentsOf: htmlURL)
@@ -357,8 +354,7 @@ final class Mecab_SwiftTests: XCTestCase {
     
     
     func testPerformanceStreamingSystem(){
-        let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
-        let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("イギリス").appendingPathExtension("html")
+        let htmlURL=Bundle.module.url(forResource: "england", withExtension: "html", subdirectory: nil)!
         measure {
             do{
                 let htmlText=try String(contentsOf: htmlURL)
@@ -375,8 +371,8 @@ final class Mecab_SwiftTests: XCTestCase {
     
     
     func testPerformanceStreamingSystem_transliterateAll(){
-        let currentURL=URL(fileURLWithPath: #file).deletingLastPathComponent().deletingLastPathComponent()
-        let htmlURL=currentURL.appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("イギリス").appendingPathExtension("html")
+        let htmlURL=Bundle.module.url(forResource: "england", withExtension: "html", subdirectory: nil)!
+
         measure {
             do{
                 let htmlText=try String(contentsOf: htmlURL)

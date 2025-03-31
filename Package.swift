@@ -50,7 +50,10 @@ let package = Package(
         
         .testTarget(
             name: "Mecab-SwiftTests",
-            dependencies: ["Mecab-Swift", "CharacterFilter", "IPADic"]),
+            dependencies: ["Mecab-Swift", "CharacterFilter", "IPADic"],
+            resources: [.copy("Resources/helicobacter.html"),
+                        .copy("Resources/england.html")]
+        ),
         
         .testTarget(
             name: "StringToolsTests",
