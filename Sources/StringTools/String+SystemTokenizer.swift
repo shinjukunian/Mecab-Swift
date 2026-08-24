@@ -24,6 +24,12 @@ public extension String{
         public let reading:String
         /// The range of the base string in the underlying text
         public let range:Range<String.Index>
+        
+        public init(base:String, reading:String, range:Range<String.Index>){
+            self.base=base
+            self.reading=reading
+            self.range=range
+        }
     }
     
     /**A convenience function to use the system tokenizer to tokenize strings.

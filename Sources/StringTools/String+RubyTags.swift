@@ -109,35 +109,25 @@ extension String{
     }
     
     
+    /**
+     Removes the Kana that the reading (the receiver) has in common with `base` from the reading.
+
+     The Kana are replaced by ideographic spaces so that the reading stays aligned with the base string, which contains the okurigana. The reading is aligned with the base to determine which part of the reading belongs to which character, so okurigana in any position, including in the middle of a word, are handled (行き先 → い　さき). If base and reading cannot be aligned, the reading is returned unchanged.
+
+     - parameters:
+        - base: the string the receiver is the reading of.
+     - returns: the reading with the okurigana replaced by ideographic spaces.
+     */
     public func cleanupFurigana(base:String)->String{
-        let hiraganaRanges=base.hiraganaRanges
-        var transliteration=self
-        
-        
-        
-        for hiraganaRange in hiraganaRanges{
-            switch hiraganaRange {
-            case _ where hiraganaRange.upperBound == base.endIndex:
-                let trailingDistance=base.distance(from: base.endIndex, to: hiraganaRange.lowerBound)
-                
-                let transliterationEnd=transliteration.index(transliteration.endIndex, offsetBy: trailingDistance)
-                let newTransliterationRange=transliterationEnd..<transliteration.endIndex
-                transliteration.replaceSubrange(newTransliterationRange, with: "　")
-                
-            case _ where hiraganaRange.lowerBound == base.startIndex:
-                let leadingDistance=base.distance(from: base.startIndex, to: hiraganaRange.upperBound)
-                
-                let transliterationStart=transliteration.index(transliteration.startIndex, offsetBy: leadingDistance)
-                let newTransliterationRange=transliteration.startIndex..<transliterationStart
-                transliteration.replaceSubrange(newTransliterationRange, with: "　")
-                
-            default:
-                let detectedCenterHiragana=base[hiraganaRange]
-                transliteration = transliteration.replacingOccurrences(of: detectedCenterHiragana, with: "　")
+        guard let segments=base.furiganaSegments(reading: self) else{return self}
+
+        return segments.map({segment->String in
+            guard segment.needsReading else{
+                let length=base.distance(from: segment.baseRange.lowerBound, to: segment.baseRange.upperBound)
+                return String(repeating: "　", count: length)
             }
-            
-        }
-        return transliteration
+            return String(self[segment.readingRange])
+        }).joined()
     }
     
 }

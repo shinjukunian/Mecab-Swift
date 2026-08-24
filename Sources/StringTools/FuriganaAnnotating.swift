@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  FuriganaAnnotating.swift
+//
 //
 //  Created by Morten Bertz on 2021/04/15.
 //
@@ -11,58 +11,76 @@ public protocol FuriganaAnnotating: Sendable{
     var base:String {get}
     var reading:String {get}
     var range:Range<String.Index> {get}
-    
+
     func furiganaAnnotation(for text:String, kanjiOnly:Bool)->FuriganaAnnotation?
 }
 
 extension FuriganaAnnotating{
+
+    /**
+     Creates a `FuriganaAnnotation` for the token.
+
+     With `kanjiOnly` set, leading and trailing Kana (okurigana, particles) are removed from the reading and the range is shortened accordingly, and Kana in the middle of the token are replaced by ideographic spaces, e.g. 打ち合わせ → う　あ for the range covering 打ち合. Base and reading are aligned to determine which part of the reading belongs to which character, so okurigana in the middle of a word are handled correctly (行き先 → い　さき). If base and reading cannot be aligned, the untouched reading for the full range of the token is returned.
+
+     - parameters:
+        - text: the text the token was found in. Ranges are expressed in terms of this string.
+        - kanjiOnly: whether to strip the Kana that base and reading have in common.
+     - returns: A `FuriganaAnnotation`, or `nil` if nothing is left to annotate.
+     */
     public func furiganaAnnotation(for text:String, kanjiOnly:Bool)->FuriganaAnnotation?{
-        
+        return self.furiganaAnnotation(for: text, in: self.range, kanjiOnly: kanjiOnly)
+    }
+
+    /**
+     Creates a `FuriganaAnnotation` for the token, for a range that differs from the `range` of the token itself.
+
+     This is useful for tokens whose `range` includes characters that are not part of the token, e.g. leading white space.
+
+     - parameters:
+        - text: the text the token was found in. Ranges are expressed in terms of this string.
+        - range: the range of `base` in `text`.
+        - kanjiOnly: whether to strip the Kana that base and reading have in common.
+     - returns: A `FuriganaAnnotation`, or `nil` if nothing is left to annotate.
+     */
+    public func furiganaAnnotation(for text:String, in range:Range<String.Index>, kanjiOnly:Bool)->FuriganaAnnotation?{
+
         guard kanjiOnly == true else{
-            return FuriganaAnnotation(reading: self.reading, range: self.range)
+            return FuriganaAnnotation(reading: self.reading, range: range)
         }
-        
-        var range=self.range
-        var transliteration=self.reading
-        
-        let hiraganaRanges=self.base.hiraganaRanges
-        
-        for hiraganaRange in hiraganaRanges{
-            switch hiraganaRange {
-            case _ where hiraganaRange.upperBound == self.base.endIndex:
-                let trailingDistance=self.base.distance(from: self.base.endIndex, to: hiraganaRange.lowerBound)
-                let newEndIndex=text.index(range.upperBound, offsetBy: trailingDistance)
-                range=range.lowerBound..<newEndIndex
-                let transliterationEnd=transliteration.index(transliteration.endIndex, offsetBy: trailingDistance)
-                let newTransliterationRange=transliteration.startIndex..<transliterationEnd
-                let t2=transliteration[newTransliterationRange]
-                transliteration=String(t2)
-            case _ where hiraganaRange.lowerBound == self.base.startIndex:
-                let leadingDistance=self.base.distance(from: self.base.startIndex, to: hiraganaRange.upperBound)
-                let newStartIndex=text.index(range.lowerBound, offsetBy: leadingDistance)// wrong?
-                range=newStartIndex..<range.upperBound
-                let transliterationStart=transliteration.index(transliteration.startIndex, offsetBy: leadingDistance)
-                let newTransliterationRange=transliterationStart..<transliteration.endIndex
-                let t2=transliteration[newTransliterationRange]
-                transliteration=String(t2)
-            default:
-                let detectedCenterHiragana=self.base[hiraganaRange]
-                transliteration = transliteration.replacingOccurrences(of: detectedCenterHiragana, with: "　")
-                //this only works when the kanji is has a reading of exactly one character
-            //the hackish replacement liekly works better
-//                    let leadingDistance=self.base.distance(from: self.base.startIndex, to: hiraganaRange.lowerBound)
-//                    let trailingDistance=self.base.distance(from: self.base.endIndex, to: hiraganaRange.upperBound)
-//                    let transliterationStart=transliteration.index(transliteration.startIndex, offsetBy: leadingDistance)
-//                    let transliterationEnd=transliteration.index(transliteration.endIndex, offsetBy: trailingDistance)
-//                    let newTransliterationRange=transliterationStart..<transliterationEnd
-//                    let length=self.base.distance(from: hiraganaRange.lowerBound, to: hiraganaRange.upperBound)
-//                    let replacementString=String(repeatElement("　", count: length))
-//                    transliteration.replaceSubrange(newTransliterationRange, with: replacementString)
+
+        guard let segments=self.base.furiganaSegments(reading: self.reading) else{
+            // base and reading cannot be aligned (sound changes, readings that don't contain the okurigana, ...). The reading for the whole token is the safe fallback.
+            return self.reading.isEmpty ? nil : FuriganaAnnotation(reading: self.reading, range: range)
+        }
+
+        guard let firstAnnotated=segments.firstIndex(where: {$0.needsReading}),
+              let lastAnnotated=segments.lastIndex(where: {$0.needsReading})
+        else{
+            //the token is Kana only, there is nothing to annotate
+            return nil
+        }
+
+        let annotated=segments[firstAnnotated...lastAnnotated]
+
+        let leading=self.base.distance(from: self.base.startIndex, to: segments[firstAnnotated].baseRange.lowerBound)
+        let trailing=self.base.distance(from: segments[lastAnnotated].baseRange.upperBound, to: self.base.endIndex)
+
+        guard let lowerBound=text.index(range.lowerBound, offsetBy: leading, limitedBy: range.upperBound),
+              let upperBound=text.index(range.upperBound, offsetBy: -trailing, limitedBy: lowerBound)
+        else{
+            return FuriganaAnnotation(reading: self.reading, range: range)
+        }
+
+        let transliteration=annotated.map({segment->String in
+            guard segment.needsReading else{
+                //Kana in the middle of the token are kept as spacers to keep the reading aligned with the base
+                let length=self.base.distance(from: segment.baseRange.lowerBound, to: segment.baseRange.upperBound)
+                return String(repeating: "　", count: length)
             }
-        }
-        
-        
+            return String(self.reading[segment.readingRange])
+        }).joined()
+
         guard transliteration.isEmpty == false else {return nil}
-        return FuriganaAnnotation(reading: transliteration, range: range)
+        return FuriganaAnnotation(reading: transliteration, range: lowerBound..<upperBound)
     }
 }

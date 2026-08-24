@@ -83,28 +83,28 @@ public extension String{
         return characters.uniqueElements
     }
     
-    /// The ranges of Hiragana characters, useful for stripping okurinaga.
+    /// The ranges of runs of Hiragana characters, useful for stripping okurigana.
     var hiraganaRanges:[Range<String.Index>]{
         var ranges=[Range<String.Index>]()
-        var currentHiraganaString=""
-        for character in self{
-            guard let firstScalar=character.unicodeScalars.first else{continue}
-            if CharacterSet.hiragana.contains(firstScalar){
-               currentHiraganaString.append(character)
+        var runStart:String.Index?
+
+        for index in self.indices{
+            let isHiragana=self[index].unicodeScalars.first.map({CharacterSet.hiraganaRange.contains($0)}) ?? false
+            switch (isHiragana, runStart) {
+            case (true, nil):
+                runStart=index
+            case (false, .some(let start)):
+                ranges.append(start..<index)
+                runStart=nil
+            default:
+                break
             }
-            else{
-                if let range=self.range(of: currentHiraganaString){
-                    ranges.append(range)
-                }
-                currentHiraganaString=""
-            }
-            
         }
-        
-        if !currentHiraganaString.isEmpty, let range=self.range(of: currentHiraganaString){
-            ranges.append(range)
+
+        if let start=runStart{
+            ranges.append(start..<self.endIndex)
         }
-        
+
         return ranges
     }
 }
@@ -140,17 +140,6 @@ public extension CharacterSet{
 
 extension Sequence where Element: Equatable {
     public var uniqueElements: [Element] {
-        return self.reduce(into: []) {
-            uniqueElements, element in
-            
-            if !uniqueElements.contains(element) {
-                uniqueElements.append(element)
-            }
-        }
-    }
-    
-    var duplicateElements: [Element] {
-        
         return self.reduce(into: []) {
             uniqueElements, element in
             
