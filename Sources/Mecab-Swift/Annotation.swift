@@ -24,10 +24,10 @@ public struct Annotation:Equatable, FuriganaAnnotating{
     ///A member of the `PartOfSpeech` enum.
     public let partOfSpeech:PartOfSpeech
     
-    ///The range of the annotation in the original string, in UTF8 format.
+    ///The range of the annotation in the original string, in UTF8 format. `mecab` reports tokens including the white space that precedes them, so this range can start before the token itself; use `rangeExcludingWhitespace` to address the token.
     public let range:Range<String.Index>
     
-    ///The range of the annotation in the original string excluding surrounding whitespace, in UTF8 format.
+    ///The range of the annotation in the original string excluding preceding whitespace, in UTF8 format.
     public let rangeExcludingWhitespace:Range<String.Index>
     
     ///In case of verbs or adjectives, the dictionary form of the token.
@@ -80,7 +80,7 @@ public struct Annotation:Equatable, FuriganaAnnotating{
     - returns: A  `FuriganaAnnotation`.
     */
     public func furiganaAnnotation(for string:String)->FuriganaAnnotation{
-         return FuriganaAnnotation(reading: self.reading , range: self.range)
+         return FuriganaAnnotation(reading: self.reading , range: self.rangeExcludingWhitespace)
     }
     
     
@@ -108,7 +108,7 @@ public struct Annotation:Equatable, FuriganaAnnotating{
             guard self.containsKanji else{
                 return nil
             }
-            return self.furiganaAnnotation(for: string, kanjiOnly: true)
+            return self.furiganaAnnotation(for: string, in: self.rangeExcludingWhitespace, kanjiOnly: true)
         }
         else{
             return FuriganaAnnotation(reading: self.reading , range: self.rangeExcludingWhitespace)

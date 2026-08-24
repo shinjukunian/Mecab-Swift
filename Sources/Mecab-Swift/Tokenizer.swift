@@ -5,9 +5,11 @@ import Dictionary
 
 /**
 A tokenizer /  morphological analyzer for Japanese
+ 
+ The `Tokenizer` is safe to share across threads: the `mecab` tagger it wraps is not thread safe, so access to it is serialized internally. All functions are synchronous, callers are free to do their own threading.
 */
-public actor Tokenizer{
-    
+public final class Tokenizer: @unchecked Sendable{
+
     /**
     How to display found tokens in Japanese text
     */
@@ -17,10 +19,10 @@ public actor Tokenizer{
         case romaji
     }
 
-    public enum TokenizerError:Error{
+    public enum TokenizerError:Error, Sendable{
         case initializationFailure(String)
         case parsingError(String)
-        
+
         public var localizedDescription: String{
             switch self {
             case .initializationFailure(let error):
@@ -30,31 +32,28 @@ public actor Tokenizer{
             }
         }
     }
-    
-    
-    internal let dictionary:DictionaryProviding
-    
-    nonisolated(unsafe) internal let _mecab:OpaquePointer!
-    
+
+    /// The tokenizer implementation that backs the `Tokenizer`.
+    enum Backend:Sendable{
+        case mecab(MecabTagger)
+        case system
+    }
+
+    let backend:Backend
+
     /**
      The version of the underlying mecab engine.
      */
     public static var version:String{
         return String(cString: mecab_version(), encoding: .utf8) ?? ""
     }
-    
-    
-    
-    fileprivate let isSystemTokenizer:Bool
 
     #if canImport(CoreFoundation)
     fileprivate init(){
-        self.isSystemTokenizer=true
-        self.dictionary=SystemDictionary()
-        _mecab=nil
+        self.backend = .system
     }
-    
-    
+
+
      /*
      The CoreFoundation CFStringTokenizer
      **/
@@ -62,7 +61,7 @@ public actor Tokenizer{
         return Tokenizer()
     }()
     #endif
-    
+
     /**
      Initializes the Tokenizer.
      - parameters:
@@ -70,27 +69,10 @@ public actor Tokenizer{
      - throws:
         - `TokenizerError`: Typically an error that indicates that the dictionary didn't exist or couldn't be opened.
      */
-    public init(dictionary:DictionaryProviding) throws{
-        self.dictionary=dictionary
-        self.isSystemTokenizer=false
-        let tokenizer=try dictionary.url.withUnsafeFileSystemRepresentation({path->OpaquePointer in
-            guard let path=path,
-                let dictPath=String(cString: path).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
-                //MeCab splits the commands by spaces, so we need to escape the path passed inti the function.
-                //We replace the percent encoded space when opening the dictionary. This is mostly relevant when the dictionary os located inside a folder of which we cannot control the name, i.e. Application Support
-                else{ throw TokenizerError.initializationFailure("URL Conversion Failed \(dictionary)")}
-            
-            guard let tokenizer=mecab_new2("-d \(dictPath)") else {
-                let error=String(cString: mecab_strerror(nil), encoding: .utf8) ?? ""
-                throw TokenizerError.initializationFailure("Opening Dictionary Failed \(dictionary) \(error)")
-            }
-            return tokenizer
-        })
-        
-        _mecab=tokenizer
-       
+    public init(dictionary:any DictionaryProviding) throws{
+        self.backend = .mecab(try MecabTagger(dictionary: dictionary))
     }
-    
+
     /**
      The fundamental function to tokenize Japanese text with an initialized `Tokenizer`
      - parameters:
@@ -100,60 +82,62 @@ public actor Tokenizer{
      */
     @available(macOS 10.11, *)
     public func tokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
-        if self.isSystemTokenizer{
+        switch self.backend {
+        case .system:
             return self.systemTokenizerTokenize(text: text, transliteration: transliteration)
-        }
-        else{
-            return mecabTokenize(text: text, transliteration: transliteration)
+        case .mecab(let mecab):
+            return mecab.withTagger({tagger, dictionary in
+                Self.mecabTokenize(text: text, tagger: tagger, dictionary: dictionary, transliteration: transliteration)
+            })
         }
     }
-    
-    fileprivate func mecabTokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
-        
+
+    fileprivate static func mecabTokenize(text:String, tagger:OpaquePointer, dictionary:any DictionaryProviding, transliteration:Transliteration = .hiragana)->[Annotation]{
+
         let annotations=text.withCString({s->[Annotation] in
             var annotations=[Annotation]()
-            var node=mecab_sparse_tonode(self._mecab, s)
+            var node=mecab_sparse_tonode(tagger, s)
             var pos=text.utf8.startIndex
             while true{
                 guard let n = node else {break}
-                
+
                 defer{
                     node = UnsafePointer(n.pointee.next)
                 }
-                
-                if let token=Token(node: n.pointee, tokenDescription: self.dictionary){
-                                        
-                    let endPos=text.utf8.index(pos, offsetBy: token.lengthIncludingWhiteSpace)
-                    // this will not work for some strings if the UTF 8 indices refer to composed character sequences.
-//                    guard let charEnd=endPos.samePosition(in: text),
-//                          let charStart=pos.samePosition(in: text) else{
-//                        continue
-//                    }
-                    
-                    let range=pos..<endPos
-                    
-                    let endPosWhiteSpace=text.utf8.index(pos, offsetBy: token.length)
-                            
-                    let rangeWhitespace = pos..<endPosWhiteSpace
-                    
-                    let annotation=Annotation(token: token, range: range, rangeExcludingWhitespace: rangeWhitespace, transliteration: transliteration)
-                    
-                    pos=endPos
-                    
-                    annotations.append(annotation)
+
+                //the beginning and end of sentence nodes are virtual and carry no text
+                guard n.pointee.isVirtualNode == false,
+                      let token=Token(node: n.pointee, tokenDescription: dictionary) else{
+                    continue
                 }
-                
+
+                // the utf8 offsets reported by mecab refer to the same bytes we passed in, but we guard against
+                // running off the end of the string in case the text contained something mecab choked on.
+                guard let endPos=text.utf8.index(pos, offsetBy: token.lengthIncludingWhiteSpace, limitedBy: text.utf8.endIndex),
+                      let tokenStart=text.utf8.index(pos, offsetBy: token.whiteSpaceLength, limitedBy: endPos) else{
+                    break
+                }
+                // this will not work for some strings if the UTF 8 indices refer to composed character sequences.
+                //`mecab` reports the length of a token including the white space preceding it, so the token itself starts after that white space.
+                let range=pos..<endPos
+                let rangeWhitespace = tokenStart..<endPos
+
+                let annotation=Annotation(token: token, range: range, rangeExcludingWhitespace: rangeWhitespace, transliteration: transliteration)
+
+                pos=endPos
+
+                annotations.append(annotation)
             }
             return annotations
         })
-       
+
        return annotations
     }
-    
-    
+
+
     /**
     A convenience function to tokenize text into `FuriganaAnnotations`.
-     
+
     `FuriganaAnnotations` are meant for displaying furigana reading aids for Japanese Kanji characters, and consequently tokens that don't contain Kanji are skipped.
     - parameters:
        - text: A `string` that contains the text to tokenize.
@@ -163,15 +147,15 @@ public actor Tokenizer{
     */
     @available(macOS 10.11, *)
     public func furiganaAnnotations(for text:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly])->[FuriganaAnnotation]{
-        
+
         return self.tokenize(text: text, transliteration: transliteration)
             .filter({$0.containsKanji})
             .compactMap({$0.furiganaAnnotation(options: options, for: text)})
     }
-    
+
     /**
        A convenience function to add `<ruby>` tags to  text.
-        
+
      `<ruby>` tags are added to all tokens that contain Kanji characters, regardless of whether they are on specific parts of an HTML document or not. This can potentially disrupt scripts or navigation.
        - parameters:
           - htmlText: A `string` that contains the text to tokenize.
@@ -185,25 +169,25 @@ public actor Tokenizer{
         let furigana=self.furiganaAnnotations(for: htmlText, transliteration: transliteration, options: options)
         var outString=""
         var endIDX = htmlText.startIndex
-        
+
         for annotation in furigana{
             outString += htmlText[endIDX..<annotation.range.lowerBound]
-            
+
             let original = htmlText[annotation.range]
             let htmlRuby="<ruby>\(original)<rt>\(annotation.reading)</rt></ruby>"
             outString += htmlRuby
             endIDX = annotation.range.upperBound
         }
-        
+
         outString += htmlText[endIDX..<htmlText.endIndex]
-        
+
         return outString
-    
+
     }
-    
+
     /**
        A convenience function to add `<ruby>` tags to  text.
-        
+
         `<ruby>` tags are added to all tokens that contain Kanji characters, regardless of whether they are on specific parts of an HTML document or not. This can potentially disrupt scripts or navigation.
        - parameters:
           - htmlText: A `string` that contains the text to tokenize.
@@ -213,40 +197,29 @@ public actor Tokenizer{
        */
     @available(macOS 10.11, *)
     public func rubyTaggedString(source htmlString:String, transliteration:Transliteration = .hiragana, options:[Annotation.AnnotationOption] = [.kanjiOnly], transliterateAll:Bool = false)->String{
-        
+
         var characters=Set<String>()
         var disallowedStrict = false
         for case let Annotation.AnnotationOption.filter(disallowed, strict) in options{
             characters=characters.union(disallowed)
             disallowedStrict=strict
         }
-        
-        if self.isSystemTokenizer{
-           
+
+        switch self.backend {
+        case .system:
             return htmlString.rubyTaggedString(useRomaji: transliteration == .romaji, kanjiOnly: options.contains(.kanjiOnly), disallowedCharacters: characters, strict: disallowedStrict, transliterateAll: transliterateAll)
+        case .mecab(let mecab):
+            return mecab.withTagger({tagger, dictionary in
+                Self.mecab_rubyTaggedString(source: htmlString, tagger: tagger, dictionary: dictionary, transliteration: transliteration, kanjiOnly: options.contains(.kanjiOnly), disallowedCharacters: characters, strict: disallowedStrict, transliterateAll: transliterateAll)
+            })
         }
-        else{
-            return self.mecab_rubyTaggedString(source: htmlString, transliteration: transliteration, kanjiOnly: options.contains(.kanjiOnly), disallowedCharacters: characters, strict: disallowedStrict, transliterateAll: transliterateAll)
-        }
-        
+
     }
-    
-    deinit {
-        mecab_destroy(_mecab)
-    }
-    
+
 }
 
-
-//if let lowerBound = outString.index(tokenRange.lowerBound, offsetBy: htmlRuby.count, limitedBy: outString.endIndex){
-//    searchRange = lowerBound ..< outString.endIndex
-//}
-//else{
-//    continue
-//}
-
-
-
-
-
-
+extension Tokenizer.TokenizerError:LocalizedError{
+    public var errorDescription: String?{
+        return self.localizedDescription
+    }
+}

@@ -7,10 +7,12 @@
 
 import Foundation
 import mecab
+import StringTools
+import Dictionary
 
 extension Tokenizer{
     
-    func mecab_rubyTaggedString(source:String, transliteration:Transliteration, kanjiOnly:Bool = true, disallowedCharacters:Set<String> = Set<String>(), strict:Bool = false, transliterateAll:Bool = false)->String{
+    static func mecab_rubyTaggedString(source:String, tagger:OpaquePointer, dictionary:any DictionaryProviding, transliteration:Transliteration, kanjiOnly:Bool = true, disallowedCharacters:Set<String> = Set<String>(), strict:Bool = false, transliterateAll:Bool = false)->String{
         
         
         func parse(subString:String)->String{
@@ -20,7 +22,12 @@ extension Tokenizer{
             return subString.withCString({s->String in
                 var retVal=""
                 
-                var node=mecab_sparse_tonode(self._mecab, s)
+                var node=mecab_sparse_tonode(tagger, s)
+                
+                guard node != nil else{
+                    //mecab failed to parse the chunk (empty input, size limit, ...). Return the text unchanged rather than dropping it.
+                    return subString
+                }
                 
                 while true{
                     
@@ -32,12 +39,14 @@ extension Tokenizer{
                         node = UnsafePointer(n.pointee.next)
                     }
                     
-                    
-                    guard let token=Token(node: n.pointee, tokenDescription: self.dictionary) else{
+                    guard n.pointee.isVirtualNode == false,
+                          let token=Token(node: n.pointee, tokenDescription: dictionary) else{
                         continue
                     }
                     
-                    let endPos=subString.utf8.index(pos, offsetBy: token.lengthIncludingWhiteSpace)
+                    guard let endPos=subString.utf8.index(pos, offsetBy: token.lengthIncludingWhiteSpace, limitedBy: subString.utf8.endIndex) else{
+                        break
+                    }
                     let original=String(subString[pos..<endPos])
                     pos=endPos
                     
@@ -66,12 +75,11 @@ extension Tokenizer{
                             }
                         }
                         
-                        var reading:String
+                        let reading:String
                         switch transliteration {
                         case .hiragana where kanjiOnly == true:
                             reading=token.reading.hiraganaString.cleanupFurigana(base: original)
-                        case .hiragana,
-                                .hiragana where kanjiOnly == false:
+                        case .hiragana:
                             reading=token.reading.hiraganaString
                         case .katakana:
                             reading=token.reading
@@ -87,6 +95,12 @@ extension Tokenizer{
                     }
                     
                 }
+                
+                //mecab stops at NUL bytes and can bail out on malformed input. Whatever is left is appended unchanged so that no text is lost.
+                if pos < subString.endIndex{
+                    retVal.append(contentsOf: subString[pos...])
+                }
+                
                 return retVal
             })
         }
