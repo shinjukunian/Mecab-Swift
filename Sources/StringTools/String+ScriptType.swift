@@ -8,13 +8,23 @@
 
 import Foundation
 
+///Convenience functions to deal with Japanese text.
 public extension String{
-    struct  ScriptType:OptionSet{
+    
+    /**
+        `ScriptType`, an `OptionSet` to detect the presence of the three major Japanese scripts in a string.
+     */
+    
+    struct ScriptType:OptionSet, Sendable{
         public let rawValue: Int
         
+        /// no Japanese characters present
         public static let noJapaneseScript=ScriptType(rawValue: 1 << 0)
+        /// Hiragana present
         public static let hiragana=ScriptType(rawValue: 1 << 1)
+        /// Katakana present
         public static let katakana=ScriptType(rawValue: 1<<2)
+        /// Kanji present
         public static let kanji=ScriptType(rawValue: 1<<3)
         
         public init(rawValue:Int){
@@ -22,95 +32,114 @@ public extension String{
         }
     }
     
+    /// Detects the presence or absence of Hiragana, Katakana, or Kanji in a text.
     var japaneseScriptType:ScriptType{
         var type = ScriptType.noJapaneseScript
         for character in self{
             guard let firstScalar=character.unicodeScalars.first else{continue}
-            if CharacterSet.kanji.contains(firstScalar){
+            if CharacterSet.kanjiRange.contains(firstScalar){
                 type.insert(.kanji)
             }
-            else if CharacterSet.hiragana.contains(firstScalar){
+            else if CharacterSet.hiraganaRange.contains(firstScalar){
                 type.insert(.hiragana)
             }
-            else if CharacterSet.katakana.contains(firstScalar){
+            else if CharacterSet.katakanaRange.contains(firstScalar){
                 type.insert(.katakana)
             }
         }
         return type
     }
-
+    
+    ///Detects whether the string contains Kanji characters.
     @inlinable var containsKanjiCharacters:Bool{
+        return self.unicodeScalars.contains(where: {scalar in
+            CharacterSet.kanjiRange.contains(scalar)
+        })
+    }
+    
+    ///Detects whether the string contains any Japanese script.
+    @inlinable var containsJapaneseScript:Bool{
+        for character in self{
+            guard let firstScalar=character.unicodeScalars.first else{continue}
+            if  CharacterSet.kanjiRange.contains(firstScalar) ||
+                CharacterSet.hiraganaRange.contains(firstScalar) ||
+                CharacterSet.katakanaRange.contains(firstScalar){
+                return true
+            }
+        }
+        return false
+    }
+    
+    //This version is a lot slower than the raw comparison above
+    @available(*, deprecated, message: "This function is outdated and shouldn't be used. Use `containsKanjiCharacters` instead.")
+    @inlinable var containsKanjiCharacters_old:Bool{
         let containedCharacters=CharacterSet.init(charactersIn: self)
         return !containedCharacters.intersection(CharacterSet.kanji).isEmpty
     }
     
+    ///A list of the unique Kanji characters in the string, in order of occurence.
     @inlinable var kanjiCharacters:[String]{
         let characters=self.compactMap({String($0).containsKanjiCharacters ? String($0): nil})
         return characters.uniqueElements
     }
     
+    /// The ranges of runs of Hiragana characters, useful for stripping okurigana.
     var hiraganaRanges:[Range<String.Index>]{
         var ranges=[Range<String.Index>]()
-        var currentHiraganaString=""
-        for character in self{
-            guard let firstScalar=character.unicodeScalars.first else{continue}
-            if CharacterSet.hiragana.contains(firstScalar){
-               currentHiraganaString.append(character)
+        var runStart:String.Index?
+
+        for index in self.indices{
+            let isHiragana=self[index].unicodeScalars.first.map({CharacterSet.hiraganaRange.contains($0)}) ?? false
+            switch (isHiragana, runStart) {
+            case (true, nil):
+                runStart=index
+            case (false, .some(let start)):
+                ranges.append(start..<index)
+                runStart=nil
+            default:
+                break
             }
-            else{
-                if let range=self.range(of: currentHiraganaString){
-                    ranges.append(range)
-                }
-                currentHiraganaString=""
-            }
-            
         }
-        
-        if !currentHiraganaString.isEmpty, let range=self.range(of: currentHiraganaString){
-            ranges.append(range)
+
+        if let start=runStart{
+            ranges.append(start..<self.endIndex)
         }
-        
+
         return ranges
     }
 }
 
-
+/// Extensions to CharacterSet to deal with Japanese text.
 public extension CharacterSet{
     
+    /// The range of Kanji characters.
+    static let kanjiRange=Unicode.Scalar(0x4e00)!...Unicode.Scalar(0x9fbf)!
+    
+    ///The range of Hiragana Characters.
+    static let hiraganaRange=Unicode.Scalar(0x3040)!...Unicode.Scalar(0x309f)!
+    
+    /// The range of Katakana characters.
+    static let katakanaRange=Unicode.Scalar(0x30a0)!...Unicode.Scalar(0x30ff)!
+    
+    /// The Hiragana CharacterSet
     static var hiragana:CharacterSet{
-        let start=Unicode.Scalar(0x3040)
-        let end=Unicode.Scalar(0x309f)
-        return CharacterSet.init(charactersIn: start!...end!)
+        return CharacterSet.init(charactersIn: hiraganaRange)
     }
     
+    /// The Katakana CharacterSet
     static var katakana:CharacterSet{
-        let start=Unicode.Scalar(0x30a0)
-        let end=Unicode.Scalar(0x30ff)
-        return CharacterSet.init(charactersIn: start!...end!)
+        return CharacterSet.init(charactersIn: katakanaRange)
     }
     
-    
+    /// The Kanji CharacterSet
     static var kanji:CharacterSet{
-        let start=Unicode.Scalar(0x4e00)
-        let end=Unicode.Scalar(0x9fbf)
-        return CharacterSet.init(charactersIn: start!...end!)
+        return CharacterSet.init(charactersIn: kanjiRange)
     }
 }
 
 
-public extension Sequence where Element: Equatable {
-    var uniqueElements: [Element] {
-        return self.reduce(into: []) {
-            uniqueElements, element in
-            
-            if !uniqueElements.contains(element) {
-                uniqueElements.append(element)
-            }
-        }
-    }
-    
-    var duplicateElements: [Element] {
-        
+extension Sequence where Element: Equatable {
+    public var uniqueElements: [Element] {
         return self.reduce(into: []) {
             uniqueElements, element in
             

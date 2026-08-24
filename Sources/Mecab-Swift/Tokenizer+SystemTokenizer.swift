@@ -12,9 +12,13 @@ import StringTools
 extension Tokenizer{
     
     func systemTokenizerTokenize(text:String, transliteration:Transliteration = .hiragana)->[Annotation]{
+        let annotations=text.systemTokenizerFuriganaAnnotations()
         
-        return text.systemTokenizerFuriganaAnnotations().map({annotation in
-            return Annotation(base: annotation.base, reading: annotation.reading, range: annotation.range, dictionaryForm: text, transliteration: transliteration)
+        return annotations.map({annotation in
+            return autoreleasepool(invoking: {
+                Annotation(base: annotation.base, reading: annotation.reading, range: annotation.range, rangeExcludingWhitespace: annotation.range, dictionaryForm: annotation.base, transliteration: transliteration)
+            })
+            
         })
         
     }

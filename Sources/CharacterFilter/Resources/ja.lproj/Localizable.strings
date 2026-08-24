@@ -19,3 +19,18 @@
 "none" = "なし";
 "JLPT" = "日本語能力試験";
 "schoolyear" = "学年";
+"kanken" = "漢字検定";
+
+"Kanken 10" = "漢検１０級";
+"Kanken 9" = "漢検９級";
+"Kanken 8" = "漢検８級";
+"Kanken 7" = "漢検７級";
+"Kanken 6" = "漢検６級";
+"Kanken 5" = "漢検５級";
+"Kanken 4" = "漢検４級";
+"Kanken 3" = "漢検３級";
+"Kanken Pre 2" = "漢検準２級";
+"Kanken 2" = "漢検２級";
+"Kanken Pre 1" = "漢検準１級";
+"Kanken 1" = "漢検１級";
+

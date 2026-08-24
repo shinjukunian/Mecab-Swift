@@ -7,21 +7,36 @@
 
 import Foundation
 
+    /**
+     The Character Filtering protocol.
+     This protocol permist the customization of Furigana generation.
+     */
 public protocol CharacterFiltering{
+    ///The `Set<String>` of characters that should be excluded.
     var disallowedCharacters:Set<String> {get}
+    ///A descriptive name.
     var localizedName:String {get}
 }
 
+/**
+    A concrete implementation of `CharacterFiltering`.
+    CharacterFilter implements filtering by school year, JLPT, and Kanken level.
+ */
 public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
     
     public typealias AllCases = [CharacterFilter]
     
+    /// no filtering
     case none
-    case schoolYear(year:SchoolYearFilter)
-    case JLPT(level:JLPTFilter)
+    /// filter by school year
+    case schoolYear(year: SchoolYearFilter)
+    /// filter by JLPT Level
+    case JLPT(level: JLPTFilter)
+    /// filter by Kanken level
+    case kanken(level: KankenFilter)
 
     public static var allCases: [CharacterFilter]{
-        return [.none, .schoolYear(year: .elementary1), .JLPT(level: .JLTP5)]
+        return [.none, .schoolYear(year: .elementary1), .JLPT(level: .JLTP5), .kanken(level: .kanken10)]
     }
     
     public var filters:[CharacterFiltering]{
@@ -32,12 +47,14 @@ public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
             return JLPTFilter.allCases
         case .schoolYear:
             return SchoolYearFilter.allCases
+        case .kanken:
+            return KankenFilter.allCases
         }
     }
     
     
     enum CodingKeys: CodingKey {
-        case none, schoolYear, JLPT
+        case none, schoolYear, JLPT, kanken
     }
     
     
@@ -53,6 +70,9 @@ public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
         case .JLPT:
             let level = try container.decode(JLPTFilter.self, forKey: .JLPT)
             self = .JLPT(level: level)
+        case .kanken:
+            let level = try container.decode(KankenFilter.self, forKey: .kanken)
+            self = .kanken(level: level)
         }
     }
     
@@ -66,6 +86,8 @@ public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
             try container.encode(year, forKey: .schoolYear)
         case .JLPT(let level):
             try container.encode(level, forKey: .JLPT)
+        case .kanken(let level):
+            try container.encode(level, forKey: .kanken)
         }
     }
     
@@ -88,6 +110,8 @@ public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
             return level.disallowedCharacters
         case .schoolYear(let year):
             return year.disallowedCharacters
+        case .kanken(let level):
+            return level.disallowedCharacters
         }
     }
     
@@ -99,6 +123,8 @@ public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
             return Bundle.module.localizedString(forKey: "JLPT", value: "JLPT", table: "Localizable")
         case .schoolYear(_):
             return Bundle.module.localizedString(forKey: "schoolyear", value: "School Year", table: "Localizable")
+        case .kanken(_):
+            return Bundle.module.localizedString(forKey: "kanken", value: "Kanken Level", table: "Localizable")
         }
     }
     
@@ -110,6 +136,8 @@ public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
             return level.localizedName
         case .schoolYear(let year):
             return year.localizedName
+        case .kanken(let level):
+            return level.localizedName
         }
     }
     
@@ -121,6 +149,8 @@ public enum CharacterFilter:Codable,Equatable,CharacterFiltering, CaseIterable {
             return 1
         case .JLPT(_):
             return 2
+        case .kanken(_):
+            return 3
         }
     }
 }
@@ -135,6 +165,8 @@ extension CharacterFilter:Identifiable, Hashable{
             return "JLPT_\(level.rawValue)"
         case .schoolYear(let year):
             return "JLPT_\(year.rawValue)"
+        case .kanken(let level):
+            return "Kanken_\(level.rawValue)"
         }
     }
     

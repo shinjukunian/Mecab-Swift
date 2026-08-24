@@ -7,13 +7,15 @@
 
 import Foundation
 
-public enum PartOfSpeech:CustomStringConvertible{
+/// Various Tokens ofr Part-of-Speech tagging.
+public enum PartOfSpeech:CustomStringConvertible, Sendable{
     case verb
     case particle
     case noun
     case adjective
     case adverb
     case prefix
+    case suffix
     case symbol
     case unknown
 
@@ -36,7 +38,8 @@ public enum PartOfSpeech:CustomStringConvertible{
             return "prefix"
         case .symbol:
             return "symbol"
-
+        case .suffix:
+            return "suffix"
         }
     }
 }
